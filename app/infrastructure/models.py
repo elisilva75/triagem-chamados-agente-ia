@@ -2,6 +2,7 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, Text, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.domain.catalog import TicketStatus, TriageStatus
@@ -31,6 +32,8 @@ class Ticket(Base):
     triage_status: Mapped[str] = mapped_column(String(16), default=TriageStatus.PENDENTE)
     content_revision: Mapped[int] = mapped_column(default=1)
     version: Mapped[int] = mapped_column(default=1)
+    suggestion: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+    final_classification: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -48,4 +51,5 @@ class TicketEvent(Base):
     ticket_id: Mapped[UUID] = mapped_column(ForeignKey("tickets.id"), index=True)
     type: Mapped[str] = mapped_column(String(16))
     content_revision: Mapped[int]
+    previous_classification: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

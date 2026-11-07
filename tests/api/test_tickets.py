@@ -25,7 +25,7 @@ def test_us01_ca1_us02_ca1_create_read_list(client):
     assert client.get(response.headers["location"]).json() == ticket
     assert client.get("/api/v1/tickets?status=resolvido").json()["total"] == 0
     assert client.get("/api/v1/tickets?triage_status=pendente").json()["total"] == 1
-    # Não existe dependência de provedor nem rota de triagem nesta história.
+    # Cadastro/edição não dependem de provedor; triagem permanece futura.
     paths = client.get("/openapi.json").json()["paths"]
     assert set(paths) == {"/health", "/api/v1/tickets", "/api/v1/tickets/{ticket_id}"}
     assert paths["/api/v1/tickets"]["post"]["responses"]["422"]["content"]["application/json"][

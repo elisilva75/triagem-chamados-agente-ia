@@ -2,11 +2,11 @@
 
 Portfólio de **Eliana Gomes da Silva**, Analista de Sistemas Sênior com experiência em QA, automação e desenvolvimento.
 
-**Escopo aprovado — primeira implementação US01/US02.** API de cadastro e consulta implementada, com PostgreSQL e migrações. A validação de Docker Compose permanece pendente porque Docker não está disponível nesta máquina. Aguardando validação de Eliana antes da próxima história.
+**Escopo aprovado — US01–US03 implementadas.** Cadastro/consulta com homologação manual informada por Eliana; edição com controle de versão implementada e aguardando sua validação. PostgreSQL e migrações nativas verificados. Docker Compose e CI no GitHub permanecem pendentes; US01 não está totalmente validada.
 
 O produto proposto registra chamados por API e usa um agente de IA para sugerir categoria, prioridade e informações ausentes. A pessoa revisora decide a classificação final. Falhas da IA preservam o chamado e permitem nova tentativa.
 
-Nesta entrega estão disponíveis apenas `/health`, criação, consulta individual e listagem em `/api/v1/tickets`, além de `/docs` e `/openapi.json`. Triagem, edição, revisão e resolução continuam planejadas. Cadastro não chama IA; `AI_MODE` aceita somente `simulated`.
+Nesta entrega estão disponíveis `/health`, criação/listagem em `/api/v1/tickets` e GET/PATCH `/api/v1/tickets/{ticket_id}`, além de `/docs` e `/openapi.json`. PATCH exige expected_version; edição efetiva invalida classificação e preserva seu snapshot no histórico. Triagem, revisão e resolução continuam planejadas. Cadastro/edição não chamam IA; `AI_MODE` aceita somente `simulated`.
 
 Para executar e testar no Windows, seguir o [guia de validação local](docs/10-validacao-local.md), que oferece PostgreSQL nativo e a configuração Compose ainda não executada. Requisitos e versões em [ambiente](docs/09-ambiente-e-versoes.md). Usar exclusivamente dados fictícios em loopback; sem autenticação, não disponibilizar publicamente.
 
@@ -23,6 +23,8 @@ Para executar e testar no Windows, seguir o [guia de validação local](docs/10-
 - [Decisões aprovadas D01–D08](docs/08-decisoes-aprovadas.md)
 - [Ambiente e compatibilidade](docs/09-ambiente-e-versoes.md)
 - [Execução, testes e validação no Windows](docs/10-validacao-local.md)
+- [Homologação informada de US01/US02](docs/11-homologacao-us01-us02.md)
+- [Roteiro e resultados de homologação de US03](docs/12-homologacao-us03.md)
 
 ## Base técnica proposta
 
@@ -34,4 +36,4 @@ Somente dados fictícios. Não publicar, fazer deploy ou contratar serviços sem
 
 ## Próximo passo
 
-Eliana valida US01/US02 conforme o guia local. Após essa validação, a próxima história é US03 (edição), respeitando a pendência de US01/Compose. US08 adiada; README em inglês e roteiro completo permanecem para US09.
+Eliana valida US03 conforme o roteiro. Aguardar essa validação antes de US04. Pendências de US01/Compose e CI remota preservadas. US08 adiada; README em inglês e roteiro completo permanecem para US09.

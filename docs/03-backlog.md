@@ -5,8 +5,9 @@
 | História | Estado nesta entrega | Pendência |
 |---|---|---|
 | US01 | Implementada, validação parcial; não concluída | Docker ausente: CA1/Compose não executado; CA2 e CA3 com evidências locais |
-| US02 | Implementada; CA1–CA4 verificados localmente; aguardando validação de Eliana | Dependência US01 ainda tem Compose pendente; não iniciar US03 antes da validação |
-| US03–US06 | Não iniciadas | Aguardar validação desta entrega antes da próxima história |
+| US02 | Implementada; CA1–CA4 automatizados; cenários manuais informados por Eliana registrados | Dependência US01/Compose pendente; não persistência do POST rejeitado confirmada pelo agente |
+| US03 | Implementada; CA1–CA3 verificados localmente; aguardando homologação | Roteiro próprio; não iniciar US04 antes da validação |
+| US04–US06 | Não iniciadas | Aguardar validação de US03 e autorização de continuidade |
 | US07 | Base de CI preparada para US01/US02; não concluída | Fluxos de triagem/revisão ainda futuros; sem execução remota |
 | US08 | Adiada | Somente provedor simulado autorizado; integração real e orçamento pendentes |
 | US09 | Não iniciada | Guia Windows antecipado só para a entrega atual; portfólio completo futuro |
@@ -45,6 +46,8 @@ Como solicitante, quero registrar um chamado e recuperá-lo mesmo sem IA. Regras
 - T3 documentação: exemplos fictícios de cadastro/consulta e rastreio dos critérios.
 
 ## US03 — Editar com controle de concorrência (P0, E02)
+
+Autorizada explicitamente por Eliana após relato de homologação de US02. Verificações e rastreabilidade em [andamento](andamento.md); [roteiro de homologação](12-homologacao-us03.md). A fundação nativa foi verificada; a pendência Compose de US01 não foi convertida em aceite aprovado.
 
 Como solicitante, quero corrigir o conteúdo sem reutilizar classificação antiga. Regras: RN01, RN11, RN16.
 

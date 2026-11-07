@@ -1,5 +1,67 @@
 # Andamento e continuidade
 
+## 07/11/2026 — Homologação informada de US02 e implementação de US03
+
+### Retorno de Eliana e verificação complementar
+
+Eliana informou execução manual no Swagger e conferência de: cadastro 201 com campos/location esperados; consulta 200; lista 200/total=1/limit=20/offset=0; página limit=1/offset=1 com items=[] e total=1; POST sem title 422/validation_error/body.title/missing; UUID inexistente 11111111-1111-4111-8111-111111111111 com 404/not_found. Resultados registrados como **homologação manual informada pela usuária**, não execução visual do agente, em [registro US01/US02](11-homologacao-us01-us02.md).
+
+Não persistência de H04 foi verificada adicionalmente pelo agente antes de encerrar o cenário: SQL direto no PostgreSQL demo antes/depois de repetir POST sem title válido estruturalmente nos demais campos. HTTP 422; tickets **1→1**, ticket_events **1→1**; request_id 81295f21-37d8-4464-8cac-88371face1ee. Dados preservados. Isso reproduz o comportamento, não reconstrói a requisição histórica da usuária. Ausência de description não foi homologada manualmente; não atribuir esse caso ao relato.
+
+Eliana autorizou iniciar US03 explicitamente. A fundação nativa estava verificada, mas Docker Compose permanece pendente e **US01 não está totalmente validada**. Execução do CI no GitHub continua pendente. Autorização não inclui US04, chamadas pagas, publicação ou deploy.
+
+### Implementação de US03 e rastreabilidade
+
+| Critério/task | Arquivos | Evidência executada |
+|---|---|---|
+| US03-CA1/T1 | routes.py, schemas.py, application/tickets.py, domain/editing.py | PATCH altera só campos fornecidos, incrementa versões, volta a pendente e registra evento na mesma transação |
+| US03-CA1/T1 | models.py, domain/classification.py, migração 0002 | Projeções JSONB nullable e snapshot da classificação anterior no evento; não há rota para definir classificações |
+| US03-CA1/T2 | tests/api/test_editing.py::test_us03_ca1_patch_content_and_history | HTTP 200, persistência confirmada por GET, versões/timestamps e eventos conferidos no PostgreSQL |
+| US03-CA1/T2 | tests/integration/test_editing.py::test_us03_ca1_archive_classification_and_preserve_history | Fixture sintética classificada: no-op preserva, edição limpa dados atuais e arquiva snapshot; segunda edição preserva o snapshot anterior |
+| US03-CA2/T2 | testes unitários e API de edição | 409 para versão antiga/resolvido/em_analise; 404 para UUID ausente; 422 sem campos de conteúdo, null, extras e versões inválidas |
+| US03-CA2/T2 | test_us03_ca2_two_connections_only_one_version_wins | Duas conexões PostgreSQL adquiridas antes da disputa: uma confirma, outra recebe 409/version_conflict; apenas um evento editado |
+| US03-CA1/CA2/T2 | test_us03_edit_event_failure_rolls_back_everything | Constraint de evento inválido reverte texto, versões, classificação e estado; não insere evento parcial |
+| US03-CA3/T2 | testes unitários e API | Trim, no-op com resposta/timestamps/eventos intactos, limites exatos e ±1, null/tipos/extra rejeitados |
+| US03-T2 | test_us03_migration_preserves_existing_ticket; migração roundtrip existente | Upgrade 0001→0002 preserva chamado; downgrade/upgrade só em banco descartável; alembic check sem divergência |
+| US03-T2 | tests/e2e/test_http.py | TCP/Uvicorn real: cadastrar, editar, consultar e rejeitar versão antiga; PostgreSQL real exclusivo |
+| US03-T3 | arquitetura ADR07, contrato API, README, guia Windows e registro de homologação | Decisão técnica, exemplos de conflito e roteiro manual atualizados |
+
+Implementação usa SELECT FOR UPDATE dentro de transação: obter linha, verificar versão/estado, arquivar classificação, alterar e registrar evento sem liberar o bloqueio entre comparação e escrita. No-op ainda exige versão e estado válidos. Sem dependência de IA. ADR07 explica projeções/snapshots antes de existirem entidades de tentativas/revisões; estas seguem futuras. Não guardar texto antigo completo nem alegar auditoria legal.
+
+### Testes e correções reais
+
+Comandos na raiz, com Python da .venv e TEST_DATABASE_URL apontando para banco administrativo isolado portfolio_test em 127.0.0.1:55432:
+
+```powershell
+.\.venv\Scripts\python.exe -m ruff check .
+.\.venv\Scripts\python.exe -m ruff format --check .
+.\.venv\Scripts\python.exe -m pip check
+$env:TEST_DATABASE_URL = 'postgresql+psycopg://portfolio_test:senha_ficticia_teste@127.0.0.1:55432/portfolio_test'
+.\.venv\Scripts\python.exe -m pytest -q --junitxml=reports/us03-all.xml
+```
+
+**Resultado final: 72 passed, 1 warning, 185,82 s, nenhuma falha ou skip.** São 37 unitários, 9 integração (8 com PostgreSQL ativo + 1 de conexão recusada com driver real), 25 API dentro do processo com PostgreSQL real e 1 HTTP/TCP com Uvicorn real e PostgreSQL. Unitários usam objetos simples/mocks quando apropriado; não representam persistência. Não há SQLite. Cada teste de banco ativo usa banco exclusivo, sem limpar o demo. Relatório local ignorado pelo Git em reports/us03-all.xml. Ruff check/format e pip check aprovados; sem novas dependências.
+
+Falhas intermediárias registradas e resolvidas: coleta pytest conflitou com módulos homônimos de testes, resolvido por --import-mode=importlib (sem apagar arquivos); integração inicial teve 34 passados/1 falha por PATCH/GET representarem o mesmo timestamp em fusos diferentes. Corrigida normalização de created_at/updated_at em UTC no schema de resposta e incluída regressão unitária; suíte final integral aprovada. Aviso conhecido de depreciação HTTPX/TestClient continua visível, sem falha. Formatação corrigida antes do resultado final.
+
+### Banco demo e API prontos para homologação
+
+Aplicada apenas migração upgrade head no demo: **0002 (head)**. Comparação de todos os campos preexistentes antes/depois confirmou **1 chamado e 1 evento preservados integralmente**; nenhuma edição de chamado demo pelo agente. Snapshots operacionais em .local/demo-us03-preservation.json, fora do Git. Downgrade não foi executado no demo.
+
+API antiga identificada pelo comando Uvicorn e pelo processo lançador da .venv deste projeto antes de encerrá-la. Houve uma tentativa de inicialização sem sucesso por porta ocupada, sem modificar dados. Inspeção via Get-NetTCPConnection não foi suficiente; identificação final usou Win32_Process com comando/parent verificados. A API foi atualizada sem encerrar processos desconhecidos. Versão **0.2.0**, PATCH presente no OpenAPI, `/docs` HTTP 200, total demo=1 e version do chamado=1 confirmados após inicialização. API e PostgreSQL deixados ativos em loopback. Logs atuais .local/api-us03-current.*; launcher PID 16780, servidor PID 23448 (sempre reconferir identidade antes de encerrar; PIDs podem ser reutilizados).
+
+### Próximo passo e limites
+
+**US03 implementada, CA1–CA3 verificados automaticamente; aguardando homologação de Eliana**, roteiro em [12-homologacao-us03.md](12-homologacao-us03.md). Não marcar homologação manual antes do relato. Invalidação de classificação existente, estados resolvido/em_analise e concorrência têm evidência automatizada com fixtures fictícias: não há rotas de triagem/revisão/resolução para criá-los pelo Swagger ainda. Não antecipar US04–US06 para a homologação.
+
+Docker Compose e CI no GitHub permanecem pendentes; US01 não totalmente validada. US04 não iniciada. Somente AI_MODE=simulated, sem chamadas de IA reais, custos, publicação ou deploy. Em nova conversa, ler esta seção e o registro de homologação antes dos registros históricos abaixo.
+
+## 07/11/2026 — Ambiente iniciado para homologação guiada
+
+PostgreSQL isolado iniciado em 127.0.0.1:55432; banco `portfolio_chamados_demo` criado sem excluir dados, migração `0001 (head)` aplicada. Total inicial=0. API iniciada em segundo plano em 127.0.0.1:8000; `/docs` HTTP 200, health ok e contrato OpenAPI conferidos após a inicialização. Processos deixados ativos para Eliana, sem garantia de sobrevivência a encerramento da sessão do sistema; comandos exatos de retomada documentados.
+
+Homologação própria em [11-homologacao-us01-us02.md](11-homologacao-us01-us02.md). **H01 aguardando retorno de Eliana; H02–H05 não iniciados.** Não registrar aprovação sem retorno. Usar o UUID recebido em H01 nas próximas etapas. Docker Compose e execução remota de CI continuam pendentes, US01 não totalmente validada e US03 não iniciada. Nenhuma publicação ou chamada paga.
+
 ## 07/11/2026 — US01/US02 implementadas; aguardando validação de Eliana
 
 ### Aprovação e escopo

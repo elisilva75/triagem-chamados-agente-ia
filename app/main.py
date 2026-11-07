@@ -10,6 +10,7 @@ from starlette.exceptions import HTTPException
 from app.api.routes import router
 from app.api.schemas import ErrorResponse
 from app.config import Settings
+from app.domain.editing import TicketError
 from app.infrastructure.database import make_engine, make_sessions
 
 
@@ -39,13 +40,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(
         title="Triagem de Chamados — uso local sem autenticação",
-        version="0.1.0",
-        description="US01/US02: cadastro e consulta. Triagem ainda não implementada.",
+        version="0.2.0",
+        description="US01–US03: cadastro, consulta e edição. Triagem ainda não implementada.",
         lifespan=lifespan,
-        responses={code: {"model": ErrorResponse} for code in (404, 422, 500, 503)},
+        responses={code: {"model": ErrorResponse} for code in (404, 409, 422, 500, 503)},
     )
     app.state.sessions = make_sessions(engine)
     app.state.engine = engine
+
+    @app.exception_handler(TicketError)
+    async def ticket_error(request, exc):
+        return error(request, exc.status, exc.code, exc.message)
 
     @app.middleware("http")
     async def request_id(request, call_next):

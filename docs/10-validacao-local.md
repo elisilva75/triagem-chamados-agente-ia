@@ -1,6 +1,6 @@
 # Execução e validação local no Windows
 
-US01/US02: somente cadastro e consulta. Sem autenticação, sem triagem implementada e sem chamadas de IA. Usar dados fictícios e manter bind em 127.0.0.1. Executar os comandos na raiz do projeto em PowerShell. Não alterar a política de execução global; se scripts estiverem bloqueados por política da máquina, usar os comandos manuais equivalentes ou informar o impedimento.
+US01–US03: cadastro, consulta e edição por PATCH com expected_version. Sem autenticação, sem triagem implementada e sem chamadas de IA. Usar dados fictícios e manter bind em 127.0.0.1. Executar os comandos na raiz do projeto em PowerShell. Não alterar a política de execução global; se scripts estiverem bloqueados por política da máquina, usar os comandos manuais equivalentes ou informar o impedimento.
 
 ## Ambiente Python
 
@@ -50,7 +50,9 @@ Invoke-RestMethod "http://127.0.0.1:8000/api/v1/tickets/$($ticket.id)"
 Invoke-RestMethod 'http://127.0.0.1:8000/api/v1/tickets?limit=20&offset=0'
 ```
 
-Esperado: health ok; cadastro 201 (visível no Swagger/cliente com status), aberto/pendente, version=1, suggestion/final_classification nulos; consulta devolve o mesmo chamado. Entradas com título de 4 caracteres, descrição menor que 20, campo extra ou status no cadastro geram 422. ID UUID inexistente gera 404. Listagem limita 1–100. Sem PATCH, triagem, revisão ou resolução nesta entrega.
+Esperado: health ok; cadastro 201 (visível no Swagger/cliente com status), aberto/pendente, version=1, suggestion/final_classification nulos; consulta devolve o mesmo chamado. Entradas com título de 4 caracteres, descrição menor que 20, campo extra ou status no cadastro geram 422. ID UUID inexistente gera 404. Listagem limita 1–100. PATCH já disponível; seguir [homologação de US03](12-homologacao-us03.md). Triagem, revisão e resolução ainda não implementadas.
+
+Após atualizar o código para US03, aplicar `alembic upgrade head` (migração 0002 aditiva, sem apagar chamados) e reiniciar apenas a API deste projeto para carregar as novas rotas. Não aplicar downgrade ao banco demo; snapshots seriam removidos. Abrir `/openapi.json` e confirmar info.version=0.2.0, ou atualizar `/docs` com Ctrl+F5 para ver PATCH.
 
 Para parar o cluster, primeiro encerrar servidores da API e testes, depois:
 

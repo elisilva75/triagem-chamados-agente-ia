@@ -36,7 +36,17 @@ Edição mantém tentativas e revisões antigas, limpa referências atuais e reg
 
 Controle de concorrência usa `version` do Ticket em comparação atômica. Começar triagem incrementa version e define current_attempt_id; finalizar exige que tentativa ainda seja a ativa, em análise e dentro do prazo, então incrementa version novamente. Qualquer resultado obsoleto é descartado. Escritas de conteúdo/revisão bloqueadas durante análise. Não manter conexão/transação aberta enquanto aguarda o provedor.
 
-## Contrato do agente
+## Complemento de US03 — ADR07: projeção e snapshot de classificação
+
+Decisão técnica para cumprir RN11 antes de US04/US06: migração 0002 adiciona `Ticket.suggestion` e `Ticket.final_classification` como JSONB nullable e `TicketEvent.previous_classification` como JSONB nullable. Não há endpoint para definir esses campos; cadastro/PATCH rejeitam sua entrada. Schemas de leitura validam categorias/prioridades pelos enums centrais. Na produção atual ambos permanecem nulos; testes usam fixtures fictícias explicitamente identificadas para comprovar invalidação de classificação existente.
+
+Uma edição efetiva, na mesma transação, obtém `SELECT FOR UPDATE`, compara expected_version, verifica estado, arquiva snapshot com revisão anterior/sugestão/classificação final, atualiza conteúdo, incrementa as duas versões e registra evento editado. O snapshot não guarda cópia integral do texto anterior. Atualiza updated_at, preservando created_at. Edição sem mudança após trim não altera timestamp, versões, estado, classificação nem eventos, mas ainda exige versão e estado válidos.
+
+O bloqueio de linha serializa concorrentes; a segunda edição com a mesma versão lê a versão já incrementada e recebe 409. O banco não fica bloqueado enquanto há chamadas de IA, pois nenhuma chamada de IA é feita aqui. A gravação do evento e do chamado é atômica: falha em qualquer parte reverte tudo.
+
+Esses JSONBs são projeções/snapshots, não substituem o futuro histórico de tentativas e revisões. US04/US06 deverão introduzir as entidades normalizadas previstas e suas referências, preservando os snapshots existentes via migração. A decisão evita simular uma revisão/triagem de produção nesta história e possibilita verificar RN11 agora. Downgrade de 0002 remove esses campos e perderia snapshots: ensaiado somente em bancos descartáveis, nunca no banco de homologação.
+
+## Contrato do agente (histórias futuras)
 
 `AIProvider` recebe mensagens, definições de ferramentas e orçamento restante; devolve pedidos de ferramenta ou resultado final estruturado. Orquestrador executa apenas allowlist, valida argumentos e conta chamadas. Ferramentas: `consultar_categorias({})` devolve slugs/descrições/versão; `consultar_politica_prioridade({})` devolve faixas, campos esperados e versão. Argumentos adicionais são inválidos.
 

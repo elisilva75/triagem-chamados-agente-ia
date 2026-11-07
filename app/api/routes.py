@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.api.schemas import TicketCreate, TicketPage, TicketRead
-from app.application.tickets import register_ticket
+from app.api.schemas import TicketCreate, TicketPage, TicketPatch, TicketRead
+from app.application.tickets import edit_ticket, register_ticket
 from app.domain.catalog import TicketStatus, TriageStatus
 from app.infrastructure.repositories import TicketRepository
 
@@ -52,3 +52,9 @@ def get_ticket(ticket_id: UUID, session: SessionDep):
     if ticket is None:
         raise HTTPException(404)
     return ticket
+
+
+@router.patch("/api/v1/tickets/{ticket_id}", response_model=TicketRead)
+def patch_ticket(ticket_id: UUID, body: TicketPatch, session: SessionDep):
+    changes = body.model_dump(exclude_unset=True, exclude={"expected_version"})
+    return edit_ticket(session, ticket_id, body.expected_version, changes)

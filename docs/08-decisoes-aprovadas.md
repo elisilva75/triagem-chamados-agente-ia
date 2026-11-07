@@ -20,3 +20,5 @@ Esta entrega autoriza US01 e US02 e a base de CI pertinente a elas. US03–US06,
 ADR01, ADR02 e ADR06 aceitas para a fundação. ADR03–ADR05 continuam como desenho para histórias futuras. Não há autenticação/identidade verificável nem adequação a acesso público. Não executar publicação, deploy ou chamadas de IA real.
 
 Aguardar validação desta entrega por Eliana antes de US03. US01/US02 só podem ser consideradas concluídas quando seus critérios tiverem evidência; limitações de ambiente não viram testes aprovados.
+
+Atualização: Eliana relatou homologação manual de cadastro, consulta, listagem/paginação, title ausente e UUID inexistente, registrada em [homologação US01/US02](11-homologacao-us01-us02.md), e autorizou US03. A ausência de persistência no POST rejeitado foi verificada adicionalmente pelo agente com contagem SQL antes/depois. US01 continua parcialmente validada; autorização de US03 não elimina a pendência de Compose. US04 e integração real continuam futuras.

@@ -1,8 +1,14 @@
 # Contrato inicial da API
 
-**Contrato do MVP com implementação parcial (US01/US02).** Prefixo `/api/v1`, JSON UTF-8, campos em inglês e valores de negócio conforme enums documentados. OpenAPI gerado pelo FastAPI descreve apenas os endpoints implementados; rotas futuras estão explicitamente identificadas abaixo.
+**Contrato do MVP com implementação parcial (US01–US03).** Prefixo `/api/v1`, JSON UTF-8, campos em inglês e valores de negócio conforme enums documentados. OpenAPI gerado pelo FastAPI descreve apenas os endpoints implementados; rotas futuras estão explicitamente identificadas abaixo.
 
-**Estado da entrega US01/US02:** disponíveis GET `/health`, POST/GET `/api/v1/tickets` e GET `/api/v1/tickets/{ticket_id}`. O nome do parâmetro de rota OpenAPI é ticket_id; representa o id da tabela abaixo. Swagger `/docs` e `/openapi.json` refletem apenas essas rotas. As demais rotas e exemplos de triagem/revisão abaixo são planejamento, não estão disponíveis.
+**Estado da entrega US01–US03:** disponíveis GET `/health`, POST/GET `/api/v1/tickets`, GET/PATCH `/api/v1/tickets/{ticket_id}`. O nome do parâmetro de rota OpenAPI é ticket_id; representa o id da tabela abaixo. Swagger `/docs` e `/openapi.json` refletem apenas essas rotas. As demais rotas e exemplos de triagem/revisão abaixo são planejamento, não estão disponíveis.
+
+## PATCH implementado em US03
+
+Exemplo: `{"expected_version":1,"description":"Descrição fictícia corrigida para demonstração."}`. expected_version é inteiro estrito ≥1; pelo menos title ou description deve ser informado. Não aceitar null, campos extras ou classificação pelo PATCH; limites/trim de RN01 valem igualmente. 200 devolve Ticket atualizado. Edição efetiva incrementa version e content_revision uma vez, volta triage_status a pendente, limpa suggestion/final_classification e arquiva classificação anterior no evento editado. No-op após trim preserva a resposta inteira e o histórico, exigindo versão atual e estado editável.
+
+409 version_conflict: versão antiga; consultar GET e revisar o conteúdo antes de tentar novamente. 409 invalid_transition: chamado resolvido ou em_analise. UUID inexistente: 404/not_found; inválido: 422. O corpo é sempre o envelope error documentado. Datas retornadas em UTC com Z, normalizadas independentemente do fuso da sessão PostgreSQL. Triagem/revisão ainda não existem; dados de classificação no teste vêm de fixtures sintéticas, não de um agente real.
 
 ## Recursos
 
