@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: portfolio_user
+      POSTGRES_PASSWORD: senha_ficticia
+      POSTGRES_DB: portfolio_chamados
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portfolio_user -d portfolio_chamados"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+  migrate:
+    build: .
+    environment: &app_env
+      DATABASE_URL: postgresql+psycopg://portfolio_user:senha_ficticia@db:5432/portfolio_chamados
+      AI_MODE: simulated
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["alembic", "upgrade", "head"]
+  api:
+    build: .
+    environment: *app_env
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+volumes:
+  postgres_data:

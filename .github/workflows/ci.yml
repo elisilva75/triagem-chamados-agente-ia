@@ -1,0 +1,43 @@
+name: checks
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: portfolio_test
+          POSTGRES_PASSWORD: senha_ficticia_teste
+          POSTGRES_DB: portfolio_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U portfolio_test -d portfolio_test"
+          --health-interval 2s --health-timeout 3s --health-retries 15
+    env:
+      AI_MODE: simulated
+      APP_ENV: test
+      TEST_DATABASE_URL: postgresql+psycopg://portfolio_test:senha_ficticia_teste@127.0.0.1:5432/portfolio_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-dev.lock
+      - run: python -m pip install -r requirements-dev.lock
+      - run: python -m pip check
+      - run: python -m ruff check .
+      - run: python -m ruff format --check .
+      - run: python -m pytest tests/unit -q --junitxml=reports/unit.xml
+      - run: python -m pytest tests/integration tests/api -q --junitxml=reports/postgres-api.xml
+      - run: python -m pytest tests/e2e -q --junitxml=reports/http-real.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: reports/*.xml
