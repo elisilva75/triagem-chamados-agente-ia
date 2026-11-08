@@ -5,6 +5,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     String,
     Text,
@@ -69,6 +70,7 @@ class TriageAttempt(Base):
     __tablename__ = "triage_attempts"
     __table_args__ = (
         UniqueConstraint("ticket_id", "attempt_number", name="uq_attempt_number"),
+        UniqueConstraint("id", "ticket_id", "content_revision", name="uq_attempt_identity"),
         Index(
             "uq_attempt_active",
             "ticket_id",
@@ -106,3 +108,36 @@ class TriageAttempt(Base):
     error_code: Mapped[str | None] = mapped_column(String(40))
     model_calls: Mapped[int] = mapped_column(default=0)
     tool_calls: Mapped[int] = mapped_column(default=0)
+
+
+class HumanReview(Base):
+    __tablename__ = "human_reviews"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["attempt_id", "ticket_id", "content_revision"],
+            ["triage_attempts.id", "triage_attempts.ticket_id", "triage_attempts.content_revision"],
+            name="fk_review_attempt_content",
+        ),
+        CheckConstraint("content_revision >= 1", name="ck_review_revision"),
+        CheckConstraint(
+            "category IN ('acesso','defeito','infraestrutura','duvida','outros')",
+            name="ck_review_category",
+        ),
+        CheckConstraint(
+            "priority IN ('baixa','media','alta','critica')", name="ck_review_priority"
+        ),
+        CheckConstraint("char_length(reason) BETWEEN 10 AND 500", name="ck_review_reason"),
+        CheckConstraint(
+            "char_length(declared_reviewer) BETWEEN 2 AND 80", name="ck_review_reviewer"
+        ),
+        Index("ix_review_ticket_created", "ticket_id", "created_at", "id"),
+    )
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    ticket_id: Mapped[UUID] = mapped_column(ForeignKey("tickets.id"))
+    attempt_id: Mapped[UUID]
+    content_revision: Mapped[int]
+    category: Mapped[str] = mapped_column(String(16))
+    priority: Mapped[str] = mapped_column(String(16))
+    reason: Mapped[str] = mapped_column(String(500))
+    declared_reviewer: Mapped[str] = mapped_column(String(80))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

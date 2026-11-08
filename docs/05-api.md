@@ -1,14 +1,14 @@
 # Contrato inicial da API
 
-**Contrato do MVP com implementação parcial (US01–US05).** Prefixo `/api/v1`, JSON UTF-8, campos em inglês e valores de negócio conforme enums documentados. OpenAPI gerado pelo FastAPI descreve apenas os endpoints implementados; rotas futuras estão explicitamente identificadas abaixo.
+**Contrato do MVP com implementação parcial (US01–US06).** Prefixo `/api/v1`, JSON UTF-8, campos em inglês e valores de negócio conforme enums documentados. OpenAPI gerado pelo FastAPI descreve apenas os endpoints implementados; rotas futuras estão explicitamente identificadas abaixo.
 
-**Estado da entrega US01–US05:** disponíveis GET `/health`, POST/GET `/api/v1/tickets`, GET/PATCH `/api/v1/tickets/{ticket_id}`, POST `/api/v1/tickets/{ticket_id}/triage` e GET `/api/v1/tickets/{ticket_id}/triage-attempts`. OpenAPI usa ticket_id. Retry e recuperação por prazo implementados em US05. Revisão, resolução e reabertura permanecem futuros (US06).
+**Estado da entrega US01–US06:** disponíveis GET `/health`, POST/GET `/api/v1/tickets`, GET/PATCH `/api/v1/tickets/{ticket_id}`, POST `/api/v1/tickets/{ticket_id}/triage` e GET `/api/v1/tickets/{ticket_id}/triage-attempts`. OpenAPI usa ticket_id. Retry e recuperação por prazo implementados em US05. Revisão humana, classificação final, resolução/reabertura e consultas de reviews implementadas em US06, nas rotas da tabela abaixo.
 
 ## PATCH implementado em US03
 
 Exemplo: `{"expected_version":1,"description":"Descrição fictícia corrigida para demonstração."}`. expected_version é inteiro estrito ≥1; pelo menos title ou description deve ser informado. Não aceitar null, campos extras ou classificação pelo PATCH; limites/trim de RN01 valem igualmente. 200 devolve Ticket atualizado. Edição efetiva incrementa version e content_revision uma vez, volta triage_status a pendente, limpa suggestion/final_classification e arquiva classificação anterior no evento editado. No-op após trim preserva a resposta inteira e o histórico, exigindo versão atual e estado editável.
 
-409 version_conflict: versão antiga; consultar GET e revisar o conteúdo antes de tentar novamente. 409 invalid_transition: chamado resolvido ou em_analise. UUID inexistente: 404/not_found; inválido: 422. O corpo é sempre o envelope error documentado. Datas retornadas em UTC com Z, normalizadas independentemente do fuso da sessão PostgreSQL. Sugestões simuladas agora são produzidas por US04; classificação final/revisão continuam futuras. Testes antigos de classificação final ainda usam fixtures sintéticas.
+409 version_conflict: versão antiga; consultar GET e revisar o conteúdo antes de tentar novamente. 409 invalid_transition: chamado resolvido ou em_analise. UUID inexistente: 404/not_found; inválido: 422. O corpo é sempre o envelope error documentado. Datas retornadas em UTC com Z, normalizadas independentemente do fuso da sessão PostgreSQL. Sugestões simuladas agora são produzidas por US04; classificação final/revisão são produzidas por US06. Fixtures sintéticas continuam somente nos testes que precisam preparar estados isolados.
 
 ## Recursos
 
@@ -121,3 +121,20 @@ Usar o mesmo POST `/api/v1/tickets/{ticket_id}/triage`, corpo `{"expected_versio
 Falhas do provedor: ai_timeout (504), ai_unavailable (503), invalid_ai_response/tool_protocol_error/execution_limit (502). Tentativa recuperada tem error_code=execucao_expirada no GET de histórico. Uma falha transitória pode ser seguida de sucesso sem editar conteúdo; a fixture `[SIMULADO:saida-invalida]` é determinística e continuará falhando em cada retry enquanto esse título permanecer, como esperado. Não alterar dados/configuração só para simular recuperação em produção.
 
 Version avança na recuperação para falha, na aquisição e na finalização; content_revision é preservada. Exemplos: timeout inicial termina em version=3; retry bem-sucedido termina em 5. Interrupção após aquisição deixa version=2; recuperação e sucesso terminam em 5. Sempre usar GET e resposta efetiva. Histórico de tentativas concluídas é preservado; eventos de conteúdo não são criados por retry/timeout/no-op.
+
+
+## US06 — contrato de revisão e transições implementado
+
+Review: POST reviews, corpo completo de exemplo fictício após GET mostrar version=3:
+
+```json
+{"expected_version":3,"category":"defeito","priority":"alta","reason":"Confirmei o bloqueio no ambiente fictício.","declared_reviewer":"Pessoa Revisora Demo"}
+```
+
+201 `{ticket,review}` com Location `/api/v1/tickets/{ticket_id}/reviews/{review_id}`. expected_version inteiro estrito ≥1, category/priority nos enums, reason texto estrito 10–500 e declared_reviewer 2–80 após trim; null, tipos coercíveis, campos extras, IDs/timestamps fornecidos pelo cliente rejeitados com 422. Exige aberto/sugerida ou aberto/revisada; sugestão/tentativa devem pertencer ao chamado e revisão atual. Sugestão permanece; final_classification aponta para review gerada; version +1 e content_revision preservada. Nova revisão em revisada gera outro registro, preserva o anterior e atualiza a referência final. Autor é texto declarado, sem autenticação.
+
+GET reviews e GET reviews/{review_id} implementados: lista por created_at ASC/id ASC, limit 1–100 e offset≥0; revisão de outro chamado ou recurso ausente retorna 404. Não há rota para alterar/apagar review. A verificação de pertencimento não oferece controle de acesso autenticado.
+
+POST resolve/reopen recebe somente expected_version obtido em GET atual. Resolve: aberto/revisada com classificação final válida → resolvido/revisada. Reopen: resolvido/revisada → aberto/revisada, mantendo classificações e conteúdo. 200 Ticket, version +1, content_revision preservada, evento de estado atômico. Versão antiga: 409/version_conflict; estado proibido/transição repetida/classificação atual inconsistente: 409/invalid_transition. 503/storage_unavailable se a transação falhar, sem sucesso parcial.
+
+Não resolver pendente/falha/sugerida/em_analise, nem revisar ou editar resolvido. Reabrir permite nova revisão ou edição. Edição efetiva invalida classificação e exige nova triagem; review/tentativa anteriores seguem consultáveis. No-op classificado não invalida nem cria evento. Resultados e limites em [validação US06](15-validacao-us06.md). Os exemplos numéricos acima são ilustrativos; não reutilizar versões sem consultar o registro atual.

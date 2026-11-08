@@ -11,7 +11,7 @@ from pydantic import (
     model_validator,
 )
 
-from app.domain.catalog import TicketStatus, TriageStatus
+from app.domain.catalog import Category, Priority, TicketStatus, TriageStatus
 from app.domain.classification import FinalClassification, Suggestion
 
 Title = Annotated[
@@ -93,9 +93,54 @@ class ErrorResponse(BaseModel):
     error: ErrorBody
 
 
-class TriageRequest(BaseModel):
+class VersionRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     expected_version: Annotated[int, Field(strict=True, ge=1)]
+
+
+class TriageRequest(VersionRequest):
+    pass
+
+
+class ReviewCreate(VersionRequest):
+    category: Category
+    priority: Priority
+    reason: Annotated[
+        str, StringConstraints(strict=True, strip_whitespace=True, min_length=10, max_length=500)
+    ]
+    declared_reviewer: Annotated[
+        str, StringConstraints(strict=True, strip_whitespace=True, min_length=2, max_length=80)
+    ]
+
+
+class ReviewRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    ticket_id: UUID
+    attempt_id: UUID
+    content_revision: int
+    category: Category
+    priority: Priority
+    reason: str
+    declared_reviewer: str
+    created_at: datetime
+
+    @field_validator("created_at")
+    @classmethod
+    def utc(cls, value):
+        return value.astimezone(timezone.utc)
+
+
+class ReviewResponse(BaseModel):
+    ticket: TicketRead
+    review: ReviewRead
+
+
+class ReviewPage(BaseModel):
+    items: list[ReviewRead]
+    total: int
+    limit: int
+    offset: int
 
 
 class AttemptRead(BaseModel):

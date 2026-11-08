@@ -1,5 +1,7 @@
 # US05 — validação técnica automatizada e demonstração opcional
 
+Estado posterior: US06 implementada e dependências funcionais de US03 atendidas por automação; ver [US06](15-validacao-us06.md). As referências a US06 futura neste registro descrevem a entrega histórica de US05.
+
 Eliana autorizou automação como caminho de validação; demonstração manual não é requisito para repetir cobertura. Resultados realmente executados estão no [andamento](andamento.md): foco M02/no-op 3 passed; US05 API 8 passed; recuperação/HTTP 3 passed; regressão completa **135 passed/1 warning, 224,88 s**, sem falhas ou skips. Ruff/formatação/pip check aprovados. Somente AI_MODE=simulated, bancos de teste exclusivos; nenhum POST/PATCH no demo.
 
 | Critério | Teste/evidência |
@@ -25,3 +27,6 @@ Se Eliana quiser demonstrar, usar Swagger local atualizado, consultar um chamado
 ## Lacunas preservadas
 
 US03: integração pelo fluxo público com classificação final humana e estado resolvido depende de US06; regras já têm fixtures automatizadas. Sugestão, snapshots, no-op/timestamps e limites não exigem repetição manual. US04: critérios independentes atendidos por testes e relatos já registrados; M02 não é lacuna manual obrigatória. Sem avaliação de modelo real, pois US08 está adiada. Docker Compose e CI no GitHub seguem não executados; US01 parcialmente validada. US06 não iniciada. Sem custos, publicação ou deploy.
+
+
+Atualização US06: revisão, classificação final e estados resolvido/reaberto implementados e integração US03 verificada automaticamente. As lacunas de fluxo citadas historicamente acima foram cobertas, sem converter testes em homologação manual. Evidência atual em [US06](15-validacao-us06.md). Infraestrutura Compose/CI permanece pendente.

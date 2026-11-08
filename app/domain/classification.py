@@ -1,4 +1,4 @@
-"""Contratos de sugestão e snapshots; classificação final ainda depende de US06."""
+"""Contratos de sugestão, classificação final humana e snapshots de edição."""
 
 from typing import Annotated, Literal
 from uuid import UUID

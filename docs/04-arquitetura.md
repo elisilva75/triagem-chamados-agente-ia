@@ -1,6 +1,6 @@
 # Arquitetura e dados
 
-**Arquitetura do MVP — implementação incremental até US05.** Fundação, cadastro, consulta, edição, agente simulado e recuperação/retry implementados; revisão e resolução permanecem futuros. Os complementos por história ao final atualizam o desenho inicial abaixo.
+**Arquitetura do MVP — implementação incremental até US06.** Fundação, cadastro, consulta, edição, agente simulado, recuperação/retry, revisão humana e resolução/reabertura implementados. Os complementos por história ao final atualizam o desenho inicial abaixo.
 
 **Atualização:** ADR01/ADR02/ADR06 aceitas para US01/US02 em 07/11/2026. Fundação e cadastro/consulta implementados; ferramentas/agente/revisão permanecem futuros. [Decisões aprovadas](08-decisoes-aprovadas.md), [ambiente/versões](09-ambiente-e-versoes.md) e [andamento](andamento.md) prevalecem sobre o status inicial acima. Migração 0001 cria Ticket e TicketEvent; tabelas/referências de tentativas e revisões serão criadas nas respectivas histórias, sem antecipar funcionalidades.
 
@@ -83,3 +83,16 @@ Finalização continua condicional à tentativa capturada ainda em_analise, mesm
 Falha real no banco ao finalizar retorna 503/storage_unavailable sem contexto que prometa persistência de falha: rollback mantém tentativa em_analise, permitindo recuperação apenas no próximo POST com versão atual e prazo vencido. O processo não mantém conexão durante o provedor. Testes usam violação real de CHECK em banco descartável, duas requisições HTTP concorrentes, resposta tardia e interrupção real de um servidor seguida de reinício e espera real do lease de 20 s. A factory de interrupção existe apenas em tests/interrupted_server.py, nunca na aplicação de produção.
 
 Sem nova migração/dependência: reutiliza triage_attempts de 0003 e seus índices/constraints. A execução permanece exclusivamente simulada; limites de preempção de Python e metadados de tokens explicados em ADR08 continuam válidos para este simulador sem I/O. US06 não implementada. Compose e CI remota permanecem pendentes.
+
+
+## US06 — ADR10: revisão normalizada e projeção final validada (08/11/2026)
+
+Migração 0004 adiciona human_reviews e unicidade (id,ticket_id,content_revision) em triage_attempts, permitindo FK composta da review para a tentativa do **mesmo chamado e revisão de conteúdo**. HumanReview tem ID, ticket_id, attempt_id, content_revision, category, priority, reason, declared_reviewer e created_at. Checks no PostgreSQL reforçam catálogo, prioridade, motivo 10–500, autor 2–80 e revisão positiva. Nenhum backfill de revisões fictícias; tickets/eventos/tentativas/snapshots existentes são preservados.
+
+A referência atual permanece na projeção Ticket.final_classification (review_id/category/priority), consistente com ADR07, evitando uma FK circular nova em Ticket. Somente o serviço gera essa projeção após inserir a HumanReview; resolve/reopen e correção em revisada verificam sob lock que o ID pertence ao próprio ticket/content_revision e que categoria/prioridade coincidem com a review. Testes exercitam FK composta e rejeição de uma projeção interna corrompida apontando para outro chamado. Sugestão é validada e deve coincidir com a tentativa bem-sucedida da revisão atual antes de permitir nova review.
+
+Revisão é append-only pelas rotas: não há update/delete; uma correção insere outro registro e atualiza a projeção na mesma transação. Histórico imutável no fluxo da aplicação, sem promessa de auditoria legal ou de impedir alterações por administrador do banco. Autor é declarado, não autenticado. Revisão não altera a sugestão/tentativa, não muda content_revision e não chama provedor.
+
+Revisão, resolução e reabertura usam SELECT FOR UPDATE para serializar comparação de version, verificação de estado, gravação e incremento. Resolve/reopen gravam TicketEvent na mesma transação, com revisão do conteúdo mantida; erro de review/projeção/evento reverte toda a operação. Correções em revisada são novas decisões explícitas; repetições de resolve/reopen retornam 409. Edição/no-op continuam conforme US03, agora verificados com classificação produzida pelas rotas reais de US06.
+
+Sem dependências novas/reconfiguradas; mesmos locks/fontes oficiais anteriores. Migração aditiva aplicada ao demo apenas após testes, com comparação integral de dados; downgrade ensaiado só em bancos descartáveis. Não há autenticação, IA real, publicação ou deploy. Infraestrutura Compose/CI continua pendente.

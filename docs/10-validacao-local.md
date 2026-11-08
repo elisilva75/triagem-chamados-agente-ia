@@ -1,6 +1,6 @@
 # Execução e validação local no Windows
 
-US01–US05: cadastro, consulta, edição, triagem exclusivamente simulada e recuperação de falhas. Sem autenticação ou chamadas de IA externas. Usar dados fictícios e manter bind em 127.0.0.1. Executar os comandos na raiz do projeto em PowerShell. Não alterar a política de execução global; se scripts estiverem bloqueados por política da máquina, usar os comandos manuais equivalentes ou informar o impedimento.
+US01–US06: cadastro, consulta, edição, triagem exclusivamente simulada, recuperação de falhas, revisão humana e resolução/reabertura. Sem autenticação ou chamadas de IA externas. Usar dados fictícios e manter bind em 127.0.0.1. Executar os comandos na raiz do projeto em PowerShell. Não alterar a política de execução global; se scripts estiverem bloqueados por política da máquina, usar os comandos manuais equivalentes ou informar o impedimento.
 
 ## Ambiente Python
 
@@ -109,3 +109,10 @@ Homologação curta em [13-homologacao-us04.md](13-homologacao-us04.md); não re
 Sem nova migração, manter esquema 0003 e banco existente. Recarregar somente a API identificada deste projeto com a mesma DATABASE_URL demo, AI_MODE=simulated e bind 127.0.0.1:8000; OpenAPI info.version=0.4.0. Não criar banco novamente nem repetir POST/PATCH para validar a atualização. GET do chamado/histórico complementa health. Critérios de US05 e M02/no-op foram exercitados por automação em bancos isolados; não pedir repetição manual.
 
 Para uso normal após falha, consultar GET para obter versão e decidir se solicita novamente POST triage. Em análise ainda no prazo: 409/triage_in_progress. Após prazo, POST com versão atual encerra anterior como execucao_expirada e adquire a seguinte atomicamente. Não há retry automático; não reiniciar nem limpar banco para destravar tentativa. Detalhes e limites em [validação US05](14-validacao-us05.md). US06 futura; Compose e CI remota pendentes.
+
+
+## Atualização US06 — revisão e ciclo operacional
+
+Reutilizar o cluster/banco existentes, aplicar somente `alembic upgrade head` (0004 aditiva: human_reviews e FK composta), comparar dados preexistentes e recarregar apenas a API identificada do projeto. Não executar initdb, createdb ou downgrade no demo. Mesmas variáveis DATABASE_URL e AI_MODE=simulated, bind 127.0.0.1:8000. Confirmar OpenAPI info.version=0.5.0 e reviews/resolve/reopen, health e GET real do chamado; GET reviews deve estar disponível sem criar revisão. Não alterar chamados para validar a atualização.
+
+Critérios de US06 e pendências funcionais de US03 foram exercitados por automação em bancos isolados. [Demonstração opcional e rastreabilidade](15-validacao-us06.md); não é aceite manual obrigatório. Autor de revisão é declarado, sem autenticação. Docker Compose e CI no GitHub permanecem não executados até evidência própria; não inferir cobertura pelo caminho nativo.

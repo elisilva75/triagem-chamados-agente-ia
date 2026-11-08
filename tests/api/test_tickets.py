@@ -33,6 +33,10 @@ def test_us01_ca1_us02_ca1_create_read_list(client):
         "/api/v1/tickets/{ticket_id}",
         "/api/v1/tickets/{ticket_id}/triage",
         "/api/v1/tickets/{ticket_id}/triage-attempts",
+        "/api/v1/tickets/{ticket_id}/reviews",
+        "/api/v1/tickets/{ticket_id}/reviews/{review_id}",
+        "/api/v1/tickets/{ticket_id}/resolve",
+        "/api/v1/tickets/{ticket_id}/reopen",
     }
     assert paths["/api/v1/tickets"]["post"]["responses"]["422"]["content"]["application/json"][
         "schema"

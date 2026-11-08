@@ -168,6 +168,12 @@ def test_us04_attempt_committed_and_no_connection_held_during_provider(client):
                 == 409
             )
             assert client.post(path + "/triage", json={"expected_version": 2}).status_code == 409
+            # US06: reutiliza a tentativa ativa real para a matriz de bloqueios.
+            from tests.review_helpers import REVIEW
+
+            for action in ("reviews", "resolve", "reopen"):
+                body = {"expected_version": 2, **(REVIEW if action == "reviews" else {})}
+                assert client.post(path + "/" + action, json=body).status_code == 409
             return delegate.respond(*args, **kwargs)
 
     client.app.state.provider = Observer()

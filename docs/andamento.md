@@ -1,5 +1,61 @@
 # Andamento e continuidade
 
+## 08/11/2026 — US06 e dependências funcionais de US03 verificadas automaticamente
+
+### Escopo, implementação e DoD
+
+Eliana autorizou US06 conforme backlog/regras, com automação isolada, demonstração opcional e preservação do demo. Criada branch local `feat/us06-human-review` a partir da entrega US05 `555b414`, sem reescrever histórico ou tocar no arquivo workspace preexistente. Sem iniciar US07/US09 ou US08 adiada. Origem das evidências abaixo: **validação técnica automatizada pelo agente**, não homologação manual informada por Eliana.
+
+Entregues POST/GET reviews, GET review por ID/Location, POST resolve/reopen. Revisão exige categoria/prioridade válidas, motivo 10–500 e autor declarado 2–80 após trim. Classificação final aponta para HumanReview gerada; correção em revisada insere outra review, preserva a anterior e a sugestão da IA. Resolver exige aberto/revisada com classificação final vinculada ao próprio chamado/revisão; reabrir mantém classificação/conteúdo. Escritas com versão antiga ou transições repetidas são rejeitadas, sem histórico adicional. Revisão e transições não chamam provedor.
+
+Migração 0004 cria human_reviews e unicidade de tentativa/chamado/content_revision para FK composta; nenhuma revisão fictícia é retroativamente criada. Referência final permanece em projeção JSON validada pelo serviço sob lock, conforme ADR10. Novo registro/referência final e transições/eventos são transacionais. Autor é declarado e sem autenticação; histórico imutável pelas rotas, sem promessa de auditoria legal. Mesmas dependências/locks/fontes oficiais, sem instalação/reconfiguração de bibliotecas; aplicação 0.5.0.
+
+| História/critério/tasks | Código/teste | Evidência executada |
+|---|---|---|
+| US06-CA1/T1/T2 | application/reviews.py, schemas/rotas, HumanReview; test_us06_ca1_ca3_review_correct_resolve_reopen_and_preserve_history | Review inicial, correção com nova decisão final, autor/motivo persistidos, sugestão/primeira review intactas, resolução e reabertura com version+1 sem alterar content_revision |
+| US06-CA2/T2 | Guardas/ReviewCreate; testes de estado e entrada inválida | Pendente/falha/sugerida sem review não resolvem; resolvido não revisa/edita nem aceita no-op; em_analise bloqueia review/resolve/reopen no teste de tentativa real reaproveitado. Enums/tipos/extras/limites inválidos retornam 422 sem escrita |
+| US06-CA3/T2 | reason/declared_reviewer; testes unitários e HTTP | Motivo 10/500 e autor 2/80 aceitos após trim/Unicode, ±1 rejeitados. Revisão subsequente mantém registro anterior e Location consultável |
+| US06-CA4/T1/T2 | SELECT FOR UPDATE + expected_version; testes de conflitos/escopo/concorrência | Versão antiga, transições repetidas e seis disputas de duas conexões: só uma escrita confirma, outra recebe version_conflict, sem duplicar reviews/eventos |
+| US03-CA1/CA3 com US06 | Teste existente test_us03_ca1_archive_classification_and_preserve_history reaproveitado | Preparação agora via POST cadastro/triagem/review, sem fixture sintética nesse caso. No-op mantém resposta integral/timestamps/classificações e contagem imediata de eventos=1. Edição limpa sugestão/final e preserva reviews/tentativas; segunda edição e nova triagem/review mantêm snapshot não nulo antigo e vinculam novo conteúdo |
+| US03-CA2 com US06 | Fluxo US06 + teste existente de tentativa ativa | Edição/no-op bloqueados em resolvido; edição bloqueada em_analise com tentativa real. Reabertura habilita escrita; resolve após invalidação é bloqueado até nova classificação |
+| US06-T2 atomicidade/integridade | tests/integration/test_reviews.py | FK composta rejeita outro ticket/revisão; projeção final interna corrompida é rejeitada. CHECK real inválido após inserir review reverte também projeção/versão; evento inválido de resolve/reopen reverte estado/timestamp/histórico |
+| US06-T2 migração/HTTP real | Teste de migração novo + roundtrip existente; tests/e2e/test_http.py ampliado | Upgrade preserva tentativas/snapshots; alembic check sem divergência; downgrade só em banco descartável. Uvicorn/TCP real percorre review→resolve→bloqueio→reopen→edição/invalidação, preservando review/tentativa |
+| US06-T3 | README, ADR10, contrato, backlog, guia, docs/15-validacao-us06.md | Critérios/tasks/resultados, DoD local e pendências separados; demonstração opcional, sem repetição manual obrigatória |
+
+### Comandos e resultados efetivos
+
+Executados na raiz com Python da .venv, TEST_DATABASE_URL apontando para o banco administrativo isolado portfolio_test em 127.0.0.1:55432. Cada teste cria e remove somente seu portfolio_test_<uuid>; nenhum POST/PATCH de teste no demo:
+
+```powershell
+.\.venv\Scripts\python.exe -m ruff check .
+.\.venv\Scripts\python.exe -m ruff format --check .
+.\.venv\Scripts\python.exe -m pip check
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_reviews.py -q
+$env:TEST_DATABASE_URL='postgresql+psycopg://portfolio_test:senha_ficticia_teste@127.0.0.1:55432/portfolio_test'
+.\.venv\Scripts\python.exe -m pytest tests/api/test_reviews.py tests/integration/test_postgres.py::test_us01_ca3_migrations_roundtrip_and_metadata -q --junitxml=reports/us06-api-focused.xml
+.\.venv\Scripts\python.exe -m pytest tests/integration/test_reviews.py tests/integration/test_editing.py::test_us03_ca1_archive_classification_and_preserve_history tests/api/test_triage.py::test_us04_attempt_committed_and_no_connection_held_during_provider tests/e2e/test_http.py -q --junitxml=reports/us06-integration-focused.xml
+.\.venv\Scripts\python.exe -m pytest -q --junitxml=reports/us06-all.xml
+```
+
+**Resultados: 21 unitários passed (0,13 s); foco API/migração 7 passed (48,70 s); foco integração/HTTP reaproveitado 14 passed (79,25 s). Regressão final: 173 passed, 1 warning, 292,88 s; zero falhas, erros ou skips.** XML conferido: 94 unitários, 53 API dentro do processo com PostgreSQL real, 24 integração (23 com PostgreSQL ativo, um de conexão recusada com driver real), 2 HTTP/TCP com servidor Uvicorn e PostgreSQL real. Inclui regressão US01–US05, recuperação/reinício real e todos os testes novos. Sem SQLite ou modelo de IA externo. Não somar focos à suíte como se fossem casos distintos.
+
+Nenhuma execução pytest desta entrega falhou. Primeiras passagens de Ruff apontaram formatação/linhas longas, corrigidas antes das verificações finais. Ruff check/format e pip check aprovados. Aviso conhecido Starlette/TestClient sobre HTTPX preservado, sem pacote novo para ocultá-lo. Relatórios locais reports/us06-*.xml ignorados pelo Git. Links locais conferidos sem referências quebradas.
+
+### Demo e ambiente
+
+Snapshot SQL somente leitura antes da entrega em `.local/demo-us06-before.json` e comparação antes/depois da migração `alembic upgrade head` e novamente após recarregar API: **todos os campos anteriores integralmente iguais**, 1 chamado, 3 eventos e 1 tentativa; human_reviews=0. Snapshot posterior `.local/demo-us06-after.json`, fora do Git. Esquema demo **0004**. Nenhum chamado/review/evento/tentativa inserido/alterado no demo pelo agente; somente DDL aditiva. Nenhum initdb, createdb, limpeza ou downgrade no demo.
+
+API anterior identificada por executável absoluto da .venv, comando Uvicorn e parentesco (launcher 3524/servidor 3324) antes de encerrá-la. Recarregada somente a API deste projeto, mesma DATABASE_URL demo/AI_MODE=simulated/bind 127.0.0.1:8000. Novo launcher PID **22504**, sempre reconferir identidade antes de encerrar; logs `.local/api-us06.*`. /health, /docs, /openapi.json, GET do chamado e GET reviews retornaram 200; OpenAPI 0.5.0 com reviews/resolve/reopen; chamado mantém version=5/content_revision=3 e classificação final nula; histórico reviews vazio. API/banco deixados ativos sem garantia de sobreviver ao encerramento da sessão do sistema. Nenhuma configuração global ou .env alterado.
+
+### Status das histórias e pendências segundo DoD
+
+**US03: dependência funcional de US06 encerrada por automação integrada; CA1–CA3/T1–T3 locais atendidos. US06: CA1–CA4/T1–T3 implementados e verificados, DoD funcional local atendida.** US02/US04/US05 mantêm critérios/tasks locais atendidos com regressão atual. Não há gate manual obrigatório, nem atribuição dos testes a Eliana; demos opcionais. Limitação histórica do timestamp intermediário de um no-op manual não é reconstruída e não exige repetição da regra já automatizada.
+
+**DoD global do MVP ainda incompleta:** US01 permanece parcial por CA1/Compose e persistência por reinício do Compose; US07 precisa completar/verificar pipeline do fluxo completo, isolamento/caminho de falha e execução remota conforme autorização; US09 precisa portfólio final, README PT/EN e ensaio completo de guias/roteiro. Medição informativa RNF03 e checkout limpo continuam trabalho de fechamento de qualidade/portfólio, não resultados presumidos da suíte funcional. Docker/Linux/CI não foram comprovados pelo ambiente nativo Windows. US08 adiada por D08, não bloqueia MVP exclusivamente simulado. Não iniciar outras histórias automaticamente nesta entrega.
+
+Sem chamadas pagas, SDK de IA externo, publicação ou deploy. Uso somente loopback/AI_MODE=simulated. Evidências e demonstração opcional em [15-validacao-us06.md](15-validacao-us06.md).
+
+
 ## 08/11/2026 — US05 implementada e validada tecnicamente; demo preservado
 
 ### Autorização e rastreabilidade

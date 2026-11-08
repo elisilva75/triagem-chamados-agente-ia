@@ -54,3 +54,17 @@ Testes locais são desenvolvidos junto com cada história; US07 integra as suít
 ## Roteiro futuro de demonstração
 
 Explicar problema → criar chamado → mostrar registro sem IA → executar modo simulado com ferramentas → provocar falha e mostrar registro preservado → repetir → corrigir sugestão por revisão humana → resolver → mostrar testes dentro do processo e por HTTP real. Encerrar com decisões, limites e próximos passos. Esse roteiro ainda não tem comandos executáveis; será ensaiado em US09.
+
+
+## Leitura atual de DoD após US06 (08/11/2026)
+
+O plano inicial permanece como histórico de dependências. A autorização de Eliana permitiu continuar incrementalmente com a pendência de US01/Compose explícita. Critérios de produto/regras, código, testes, migração e documentação de US02–US06 são avaliados no **escopo local nativo executado**, sem transformar isso em conclusão de infraestrutura ou do MVP inteiro. Demonstração manual adicional é opcional; relatos anteriores continuam identificados e não são substituídos por execução técnica.
+
+- US01: DoD incompleta, falta CA1 pelo Compose e persistência pelo reinício do Compose. CA2/CA3 têm evidências nativas.
+- US02–US05: critérios/tasks locais atendidos e regressão com US06 executada (173 passed/1 warning); a dependência funcional restante de US03 com classificação final/resolvido foi exercitada via rotas reais. Não há gate de repetição manual.
+- US06: critérios/tasks de revisão/resolução/reabertura, limites, concorrência, rollback e migração com evidências no andamento. DoD funcional local atendida, regressão concluída (173 passed/1 warning); sem demonstrar execução Docker/Linux/CI remota.
+- US07: base existente, falta concluir/verificar o pipeline do fluxo completo, isolamento/caminho de falha e execução remota quando houver autorização para publicar. Manter CI remota pendente até executá-la; arquivo preparado não é execução.
+- US09: ainda faltam portfólio final, README PT/EN e ensaio completo dos guias/roteiro. Não publicar sem autorização.
+- US08: adiada por D08, não bloqueia o MVP simulado. Nenhum modelo real/SDK/pagamento autorizado.
+
+Pendências transversais, como medição informativa RNF03, ensaio de checkout limpo e ambiente Docker, não foram inventadas como aprovadas pela suíte funcional. Devem ser verificadas no fechamento de qualidade/portfólio. Rastreabilidade e resultados realmente executados em [andamento](andamento.md).

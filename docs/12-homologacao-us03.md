@@ -1,6 +1,6 @@
 # Homologação de US03 — edição com controle de versão
 
-**Implementada e verificada automaticamente; homologação manual em andamento.** Edição, conflito de versão e consulta posterior confirmados no relato de Eliana em 08/11/2026, com alcance detalhado abaixo. Eliana aceitou E01–E04 e autorizou US04 em 08/11/2026. US03 mantém pendências específicas de homologação com classificação existente; US01/Compose e CI no GitHub continuam pendentes.
+**CA1–CA3/T1–T3 e integração com US06 atendidos no escopo funcional local.** Registros manuais históricos de Eliana preservados abaixo; a validação técnica automatizada encerrou as dependências de classificação final/resolvido sem exigir repetição manual. Infraestrutura US01/Compose e CI no GitHub continuam pendentes; detalhes no complemento US06 e no andamento.
 
 ## Ambiente preparado
 
@@ -61,7 +61,7 @@ A invalidação de classificação existente, a preservação de snapshots após
 
 ## Registro manual
 
-| Cenário | Estado | Evidência informada por Eliana |
+| Cenário | Estado | Evidência e origem |
 |---|---|---|
 | E01 edição e consulta | Confirmado no alcance do relato de Eliana em 08/11/2026 | PATCH expected_version=1: HTTP 200, descrição alterada, título preservado; version/content_revision 1→2. GET posterior: HTTP 200, versões=2 e descrição da primeira edição preservada. Classificação/timestamps/histórico não confirmados por esse relato |
 | E02 versão antiga | Homologação manual informada por Eliana em 08/11/2026 | Novo PATCH com expected_version=1 e outra descrição: HTTP 409/version_conflict. GET posterior confirmou que a alteração rejeitada não foi aplicada. Variante executada altera descrição, não title como no roteiro original |
@@ -71,7 +71,7 @@ A invalidação de classificação existente, a preservação de snapshots após
 | E04c título curto | Homologação manual informada por Eliana em 08/11/2026 | PATCH expected_version=2/title="abcd": 422/validation_error, body.title/string_too_short. GET 200 com conteúdo, versões 2 e timestamps preservados. Consulta somente leitura posterior: exatamente dois eventos |
 | E04d descrição curta | Homologação manual informada por Eliana em 08/11/2026 | PATCH expected_version=2/description="curta": HTTP 422/validation_error, body.description/string_too_short. GET 200 manteve conteúdo, versões 2 e timestamps. Consulta somente leitura posterior confirmou dois eventos |
 | Histórico básico via SQL | Conferido pelo agente em 08/11/2026, em consulta somente leitura; não atribuído a Eliana | Um evento criado/revisão 1 e um editado/revisão 2. Snapshot anterior da edição contém revisão 1 e classificações nulas. Não comprova preservação de classificação não nula |
-| Invalidação de classificação existente | Pendente de homologação manual; depende de funcionalidades futuras pelo Swagger | Sugestão depende de US04; classificação humana final depende de US06. Não há rotas de produção desses dados hoje; fixtures automatizadas não equivalem a homologação manual |
+| Invalidação de classificação existente | Validação técnica automatizada integrada com US06; não é novo relato manual | Sugestão e classificação final geradas pelas rotas reais; no-op, invalidação, snapshots e bloqueios executados no teste existente reaproveitado. Dependência funcional atendida; sem repetição manual obrigatória |
 
 ### Registro de 08/11/2026 e próximo cenário
 
@@ -189,3 +189,10 @@ Eliana informou M01a–M01c: sugestão simulada obtida (versões 4/2), no-op pre
 ### Estratégia vigente: lacunas de integração, sem repetição manual obrigatória
 
 Eliana autorizou validar M02/no-op por automação e iniciar US05 após critérios independentes atendidos. Testes reaproveitados executados: 3 passed/1 warning, incluindo no-op classificado com timestamps/sugestão/versões e contagem imediata de eventos, M02 e snapshots de classificação. A lacuna histórica do timestamp de uma resposta manual específica não é reconstruível e não bloqueia a regra funcional automatizada. Demonstrações curtas são opcionais, não pedir repetição de limites/campos/snapshots já automatizados. Restam para US06 os testes integrados produzindo classificação final humana/resolvido pelas rotas públicas; fixtures já cobrem a lógica de edição nesses estados. US03 não é declarada integralmente integrada com US06 antes dessa implementação. Docker Compose e CI permanecem pendentes.
+
+
+### US06 — dependências funcionais encerradas por validação técnica automatizada
+
+Eliana autorizou US06 e testes integrados, com demonstrações opcionais. O teste existente `test_us03_ca1_archive_classification_and_preserve_history` foi reaproveitado: criação/triagem/revisão produzidas pelas rotas reais, no-op revisado com resposta inteira/timestamps preservados e sem evento extra, edição invalida sugestão e classificação final e mantém review/tentativa, segunda edição preserva o snapshot não nulo anterior, nova triagem/revisão referencia a nova revisão sem alterar histórico antigo. O fluxo US06 cobre edição/no-op bloqueados em resolvido, reabertura, correção de revisão e preservação de classificação/histórico; o teste de tentativa ativa real foi ampliado para bloqueios em_analise sem duplicar cenário. Evidência em [validação US06](15-validacao-us06.md) e andamento.
+
+Isso encerra a dependência **funcional de US03 com US06**, por automação isolada, sem atribuir nova homologação manual a Eliana. Captura histórica do timestamp do no-op manual específico continua indisponível; não é lacuna funcional a repetir, pois a regra foi verificada por automação. Critérios locais CA1–CA3/T1–T3 atendidos após a regressão documentada. Não converter Compose/CI em aprovado: US01 permanece parcialmente validada e o MVP global ainda tem pendências de infraestrutura/qualidade/portfólio.

@@ -1,6 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from sqlalchemy import create_engine, select
@@ -36,21 +36,47 @@ def seed_classified(engine):
 
 
 def test_us03_ca1_archive_classification_and_preserve_history(migrated_url, client):
+    """Reaproveitado em US06: agora produz classificação pelas rotas públicas."""
+    from tests.review_helpers import REVIEW
+
     engine = create_engine(migrated_url)
     try:
-        ticket_id, suggestion, final = seed_classified(engine)
-        before = client.get(f"/api/v1/tickets/{ticket_id}").json()
+        created = client.post(
+            "/api/v1/tickets",
+            json={
+                "title": "Título original",
+                "description": "Descrição original fictícia de teste.",
+            },
+        )
+        assert created.status_code == 201
+        path = created.headers["location"]
+        ticket_id = UUID(created.json()["id"])
+        triaged = client.post(path + "/triage", json={"expected_version": 1})
+        assert triaged.status_code == 200
+        reviewed = client.post(path + "/reviews", json={"expected_version": 3, **REVIEW})
+        assert reviewed.status_code == 201
+        before = client.get(path).json()
+        suggestion, final = before["suggestion"], before["final_classification"]
         assert before["suggestion"] == suggestion and before["final_classification"] == final
-        with Session(engine, expire_on_commit=False) as session:
-            unchanged = edit_ticket(session, ticket_id, 1, {"title": "Título original"})
-            assert unchanged.suggestion == suggestion and unchanged.final_classification == final
-            assert unchanged.triage_status == "revisada"
-            changed = edit_ticket(session, ticket_id, 1, {"title": "Título modificado"})
-            assert changed.suggestion is changed.final_classification is None
-            assert changed.triage_status == "pendente"
-            edit_ticket(
-                session, ticket_id, 2, {"description": "Outra descrição fictícia de teste."}
-            )
+        history = client.get(path + "/reviews").json()
+        attempts = client.get(path + "/triage-attempts").json()
+        noop = client.patch(path, json={"expected_version": 4, "title": "  Título original  "})
+        assert noop.status_code == 200 and noop.json() == before
+        assert client.get(path).json() == before  # inclui timestamps e classificações
+        with Session(engine) as session:
+            assert len(session.scalars(select(TicketEvent)).all()) == 1
+        changed = client.patch(path, json={"expected_version": 4, "title": "Título modificado"})
+        assert changed.status_code == 200
+        assert changed.json()["suggestion"] is changed.json()["final_classification"] is None
+        assert changed.json()["triage_status"] == "pendente"
+        assert changed.json()["version"] == 5 and changed.json()["content_revision"] == 2
+        assert client.post(path + "/resolve", json={"expected_version": 5}).status_code == 409
+        second = client.patch(
+            path, json={"expected_version": 5, "description": "Outra descrição fictícia de teste."}
+        )
+        assert second.status_code == 200
+        assert client.get(path + "/reviews").json() == history
+        assert client.get(path + "/triage-attempts").json() == attempts
         with Session(engine) as session:
             events = session.scalars(
                 select(TicketEvent).order_by(TicketEvent.content_revision)
@@ -62,7 +88,21 @@ def test_us03_ca1_archive_classification_and_preserve_history(migrated_url, clie
                 "final_classification": final,
             }
             assert events[2].previous_classification["suggestion"] is None
-            assert session.get(Ticket, ticket_id).version == 3
+            assert session.get(Ticket, ticket_id).version == 6
+        new_triage = client.post(path + "/triage", json={"expected_version": 6})
+        assert new_triage.status_code == 200
+        new_review = client.post(path + "/reviews", json={"expected_version": 8, **REVIEW})
+        assert new_review.status_code == 201
+        assert new_review.json()["review"]["content_revision"] == 3
+        assert new_review.json()["review"]["attempt_id"] != reviewed.json()["review"]["attempt_id"]
+        assert client.get(path + "/reviews").json()["items"][0] == history["items"][0]
+        with Session(engine) as session:
+            archived = session.scalar(select(TicketEvent).where(TicketEvent.content_revision == 2))
+            assert archived.previous_classification == {
+                "content_revision": 1,
+                "suggestion": suggestion,
+                "final_classification": final,
+            }
     finally:
         engine.dispose()
 

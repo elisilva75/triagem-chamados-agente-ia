@@ -32,3 +32,8 @@ Eliana aceitou os resultados manuais E01–E04 de US03 e autorizou explicitament
 ## Continuidade automatizada para US05 — 08/11/2026
 
 Eliana autorizou executar M02/no-op por automação isolada e, atendidos os critérios independentes, implementar/testar US05 conforme backlog. M02 não exige sua execução no Swagger; não converter testes em homologação manual nem solicitar repetição de cobertura existente. Demonstrações curtas são opcionais; decisões de produto continuam com Eliana. Critérios independentes verificados por testes reaproveitados (3 passed), permitindo US05. US06 continua dependência futura para classificação final/resolução; Docker Compose e CI remota pendentes. Sem chamadas pagas, publicação ou deploy. Esta instrução substitui a exigência anterior de aguardar homologação manual de US04 para avançar.
+
+
+## Autorização de US06 e validação integrada — 08/11/2026
+
+Eliana autorizou implementar US06 conforme backlog/regras, incluindo revisão humana, classificação final, resolução/reabertura e as dependências pendentes de US03: no-op/edição/invalidação com classificação final, preservação de histórico e bloqueios nos estados pertinentes. Usar automação isolada, reaproveitar testes e preservar demo; demonstração manual opcional, sem repetição obrigatória. Atualizar critérios/dependências/DoD com evidências reais. Docker Compose e CI permanecem pendentes até execução; nenhuma autorização para chamada paga, publicação ou deploy. US07/US09 continuam próximas histórias, US08 adiada.

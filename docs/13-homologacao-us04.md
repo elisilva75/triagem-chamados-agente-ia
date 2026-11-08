@@ -29,7 +29,7 @@ Esperado 201; guardar ID e version. O título exato seleciona uma fixture explí
 
 ## Registro
 
-| Cenário | Estado | Evidência manual |
+| Cenário | Estado | Evidência e origem |
 |---|---|---|
 | M01a geração de sugestão | Homologação manual informada por Eliana em 08/11/2026 | POST 200; GET confirmou simulated/defeito/media, sugerida, versões 4/2 |
 | M01b no-op com sugestão existente | Homologação manual informada no alcance do relato em 08/11/2026 | PATCH 200, sugestão e versões 4/2 preservadas; timestamp intermediário não informado nem recuperável após edição posterior. SQL sem evento extra |
@@ -63,3 +63,6 @@ US03: no-op com sugestão e invalidação/preservação de sugestão agora infor
 ### Estratégia atual de aceite — automação, 08/11/2026
 
 Por instrução de Eliana, M02 e o no-op classificado foram executados nos testes existentes em bancos isolados: 3 passed/1 warning, incluindo integração de snapshots. Timestamp/versões/sugestão preservados pelo no-op e ausência de evento extra verificados automaticamente. Não solicitar repetição manual; demonstração de M02 é opcional. M01 mantém a origem manual de seus relatos; M02 é exclusivamente validação técnica automatizada. Critérios independentes de US04 atendidos, continuidade para US05 autorizada; dependências de US06 e pendências Compose/CI mantidas.
+
+
+US06 implementada e validada automaticamente: classificação final/revisão/resolução agora disponíveis; dependência funcional da edição com esses dados coberta pelo teste existente de US03 reaproveitado. US04 não exige repetição manual de M01/M02/no-op. Consultar [DoD e validação US06](15-validacao-us06.md); Compose/CI continuam pendentes.

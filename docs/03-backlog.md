@@ -6,11 +6,11 @@
 |---|---|---|
 | US01 | Implementada, validação parcial; não concluída | Docker ausente: CA1/Compose não executado; CA2 e CA3 com evidências locais |
 | US02 | Implementada; CA1–CA4 automatizados; cenários manuais informados por Eliana registrados | Dependência US01/Compose pendente; não persistência do POST rejeitado confirmada pelo agente |
-| US03 | CA1–CA3 automatizados; E01–E04 aceitos e no-op/invalidação de sugestão informados por Eliana | Falta validação integrada pelas rotas de US06 com classificação final/resolvido; fixtures já cobrem as regras. Sem repetição manual obrigatória |
+| US03 | CA1–CA3 e tasks verificados localmente; dependência funcional de US06 coberta por rotas reais e testes | Sem lacuna funcional/manual obrigatória de classificação; pendência de ambiente de US01 continua separada |
 | US04 | Critérios independentes verificados; M01 manual informado e M02/no-op por automação isolada | Sem gate manual obrigatório; plataforma Docker/CI permanece pendente separadamente |
-| US05 | CA1–CA4 implementados e verificados localmente por automação; regressão 135 passed/1 warning | Demonstração opcional; Compose/CI pendentes separadamente; US06 não iniciada |
-| US06 | Não iniciada | Revisão/classificação final e resolução continuam fora da entrega |
-| US07 | Base de CI preparada para US01/US02; não concluída | Fluxos de triagem/revisão ainda futuros; sem execução remota |
+| US05 | CA1–CA4 e tasks verificados localmente por automação; regressão ampliada em US06 | Sem demonstração manual obrigatória; Compose/CI pendentes separadamente |
+| US06 | CA1–CA4/T1–T3 e DoD funcional local atendidos; regressão 173 passed/1 warning | Sem gate manual; DoD global do MVP depende de US01/US07/US09 |
+| US07 | Pipeline base e suítes por camada existentes; não concluída | Fluxo US02–US06 disponível para qualificar o pipeline; comprovar isolamento/caminho de falha e CI remota conforme autorização |
 | US08 | Adiada | Somente provedor simulado autorizado; integração real e orçamento pendentes |
 | US09 | Não iniciada | Guia Windows antecipado só para a entrega atual; portfólio completo futuro |
 

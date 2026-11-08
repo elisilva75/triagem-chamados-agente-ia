@@ -86,16 +86,38 @@ def test_us02_http_real_process(migrated_url):
             assert suggested["suggestion"]["mode"] == "simulated"
             assert suggested["final_classification"] is None
             assert client.get(path).json() == suggested
+            from tests.review_helpers import REVIEW
+
+            reviewed = client.post(path + "/reviews", json={"expected_version": 4, **REVIEW})
+            assert reviewed.status_code == 201, reviewed.text
+            review = reviewed.json()["review"]
+            assert client.get(reviewed.headers["location"]).json() == review
+            resolved = client.post(path + "/resolve", json={"expected_version": 5})
+            assert resolved.status_code == 200 and resolved.json()["status"] == "resolvido"
+            assert (
+                client.patch(
+                    path, json={"expected_version": 6, "title": "Bloqueado em resolvido"}
+                ).status_code
+                == 409
+            )
+            reopened = client.post(path + "/reopen", json={"expected_version": 6})
+            assert reopened.status_code == 200 and reopened.json()["status"] == "aberto"
+            assert (
+                reopened.json()["final_classification"]
+                == reviewed.json()["ticket"]["final_classification"]
+            )
             edited_again = client.patch(
                 path,
                 json={
-                    "expected_version": 4,
+                    "expected_version": 7,
                     "description": "Texto fictício corrigido após triagem.",
                 },
             )
             assert edited_again.status_code == 200
             assert edited_again.json()["suggestion"] is None
+            assert edited_again.json()["final_classification"] is None
             assert edited_again.json()["triage_status"] == "pendente"
+            assert client.get(path + "/reviews").json()["items"] == [review]
             history = client.get(path + "/triage-attempts").json()
             assert history["total"] == 1
             assert history["items"][0]["suggestion"] == suggested["suggestion"]
