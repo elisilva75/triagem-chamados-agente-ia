@@ -1,5 +1,64 @@
 # Andamento e continuidade
 
+## 08/11/2026 — US01, US07 e US09: preparação local do MVP simulado
+
+### Autorização e resultado atual
+
+Eliana autorizou fechar qualidade/documentação e verificar ambiente, preservando o demo, sem publicação, deploy ou chamadas pagas. Branch local `chore/mvp-readiness`, baseada em `8049206`, sem reescrever histórico. Arquivo workspace preexistente continua intacto e não incluído. Evidências desta seção são **validação técnica automatizada executada pelo agente**, não novos relatos de homologação manual de Eliana. Registros manuais anteriores não foram duplicados.
+
+**US01 continua parcial:** Docker ausente no PATH, no caminho Program Files e nos caminhos locais de instalação conferidos. Não houve build, Compose, teste de volume ou reinício de containers. Pré-requisito: Docker Desktop com mecanismo Linux ativo e Compose, conforme fontes no documento 09. Não instalado nem contratado nesta entrega. Guia identifica comandos Compose não executados e separa portas/projeto/volume para preservar demo. CA2/CA3 continuam cobertos pela regressão nativa; CA1 exige execução própria.
+
+**US07: critérios/tasks no equivalente local executados; CI remoto permanece pendente.** Workflow usa Ubuntu, PostgreSQL 16 de serviço, Python 3.12, locks existentes, AI_MODE=simulated/APP_ENV=test e credenciais fictícias. Sem secrets de provedor ou adaptador real. Instalação pelo lock e permissões contents:read preservadas; job limitado a 20 minutos, upload JUnit com always. Runner compartilhado interrompe na primeira falha e rejeita suíte obrigatória vazia/com skips. Arquivo revisto não equivale à execução do GitHub Actions; nem valida o provisionamento Linux/container nesta máquina.
+
+**US09: documentação e ensaio no escopo nativo isolado atendidos.** README PT/EN, arquitetura/modelo atual, contrato/exemplos, guia Windows consolidado (removidas instruções obsoletas de versões), roteiro curto/descrição de portfólio e declaração de uso de IA no desenvolvimento. Integração real permanece adiada em US08; não há SDK de modelo, avaliação de acurácia ou inferência paga. Publicação preparada para revisão futura, sem PR remoto/push/deploy.
+
+### Rastreabilidade da entrega
+
+| História / critérios / tasks | Arquivos e cobertura | Evidência executada |
+|---|---|---|
+| US01-CA1/T3 | compose.yaml, Dockerfile, guia 10, ambiente 09 | Diagnóstico Docker indisponível; execução Compose não aprovada |
+| US01-CA2/CA3/T2 | Suíte existente de health/migração | Regressão real PostgreSQL e dois roundtrips simultâneos, sem limpar demo |
+| US07-CA1/T1/T2/T3 | .github/workflows/ci.yml, scripts/check_quality.py, suites unit/integration/api/e2e | Pipeline local 177 passed, relatórios por camada; GitHub remoto pendente |
+| US07-CA2/T1/T2 | tests/unit/test_quality_gate.py | 4 casos novos: primeira falha bloqueia sequência, config obrigatória, relatório vazio e com skip bloqueados; sem duplicar testes de produto |
+| US07-CA3/T2 | tests/conftest.py e roundtrip existente reaproveitado | Nome isolado sem URL/senha registrado em JUnit; duas execuções concorrentes passaram com bancos distintos, migração do zero/duplo upgrade/downgrade/upgrade |
+| US09-CA1/T1/T3 | README.md, README.en.md, docs 04/05/10/16, scripts/demo_flow.py | Roteiro cadastro→falha→retry→correção→sugestão→review→resolve executado por HTTP real em fontes isoladas |
+| US09-CA2/T2 | Revisão de arquivos rastreados + 5 novos previstos, .gitignore/.dockerignore | 88 arquivos inspecionados; sem artefatos locais ou achados de segredo nos padrões conferidos; links locais verificados |
+| US09-CA3/T2 | Exportação limpa em .local/rehearsal-source, venv nova, banco exclusivo gerado | Lock instalado, pip check, upgrade head duas vezes, health + consulta real, roteiro e reinício nativo da API com GET integral idêntico |
+
+### Comandos e resultados realmente executados
+
+Na raiz em PowerShell, definidos TEST_DATABASE_URL para banco administrativo `portfolio_test` em 127.0.0.1:55432, AI_MODE=simulated e APP_ENV=test. Executado `.venv/Scripts/python.exe scripts/check_quality.py`, saída 0:
+
+- pip check aprovado; Ruff check aprovado e format aprovado. Rechecagem final inclui scripts novos.
+- `pytest tests/unit -q --junitxml=reports/unit.xml`: **98 passed, 1 warning, 1,41 s**.
+- `pytest tests/integration tests/api -q --junitxml=reports/postgres-api.xml`: **77 passed, 1 warning, 504,42 s** (53 API in-process + 24 integração, incluindo driver real com conexão recusada). Execução teve outros ensaios isolados concorrentes; não usar duração como benchmark da suíte.
+- `pytest tests/e2e -q --junitxml=reports/http-real.xml`: **2 passed, 1 warning, 42,16 s**, Uvicorn/TCP/PostgreSQL reais, incluindo interrupção/reinício/recuperação por prazo.
+
+**Total: 177 passed, nenhuma falha/erro/skip.** Um aviso conhecido se repete por camada: Starlette TestClient depreca HTTPX. Não instalado pacote para ocultá-lo. Relatórios ignorados pelo Git; nenhuma porcentagem de cobertura de linhas foi medida.
+
+Isolamento: `.venv/Scripts/python.exe .local/check_isolation.py` iniciou em paralelo duas execuções do teste existente `test_us01_ca3_migrations_roundtrip_and_metadata`, cada uma com JUnit próprio (reports/isolation-0.xml e isolation-1.xml). Ambas saída 0, 1 passed cada (26,55 s e 26,88 s); bancos `portfolio_test_c10e936cd83a436ea996ad3133e79bba` e `portfolio_test_1ea251901d1940ca945e873047ea8e67`, distintos e removidos pela fixture. São reexecuções do mesmo teste, não dois casos novos somados aos 177.
+
+Instalação/guia: `python -m venv .local/rehearsal-venv` e Python dessa venv com `-m pip install -r requirements-dev.lock` concluídos. A primeira tentativa restrita foi interrompida sem progresso; a execução autorizada com acesso aos pacotes terminou usando cache. Sem alteração de locks/versões ou instalação global. `.local/rehearse_readiness.py` copiou os 88 arquivos de fonte/documentação preparados para diretório sem .env/.git/.venv/dados locais; usou venv nova e banco gerado `portfolio_test_6986db906ad443e4b2fc5a0244231235`, com migrações 0001–0004 do zero e segundo upgrade sem alteração. Não foi clone remoto ou máquina Windows nova: reutilizou binários PostgreSQL 16.4 e cluster nativo existente, com banco separado.
+
+Ensaio: `scripts/demo_flow.py --base-url <loopback:porta exclusiva>` na cópia isolada retornou 201 no cadastro, 502/invalid_ai_response nas duas tentativas, 200 na correção, 200 na triagem válida, 201 na review e 200 na resolução. Consultou GET antes de cada escrita. Final resolvido/revisada, version=10, content_revision=2, 3 tentativas e 1 review; reinício do processo da API manteve GET completo idêntico. Banco gerado removido no finally; demo não usado. Evidência local em .local/readiness-rehearsal.json. Esse reinício **não valida reinício Compose**.
+
+Reutilização do cluster: `scripts/start-test-postgres.ps1` não conseguiu reconhecer processo/abrir log sob o token restrito do sandbox e falhou. pg_isready e consultas continuaram respondendo; não houve recriação nem perda de dados. Reexecução autorizada fora dessa restrição reconheceu PID 18284 e reutilizou o cluster existente, saída 0. A limitação foi incluída no guia.
+
+### Medição informativa RNF03 e preservação de dados
+
+`.venv/Scripts/python.exe .local/measure_readiness.py`: banco exclusivo com 1.000 chamados fictícios, Uvicorn/TCP loopback, HTTPX com conexão reutilizada, 100 requisições sequenciais por operação, sem IA. GET individual p95 **30,95 ms**, GET lista limit=20 p95 **43,25 ms**, POST p95 **45,99 ms**; máximos 104,03 / 51,95 / 173,77 ms. Leituras feitas com 1.000 registros; os 100 POSTs elevaram a base até 1.100. p95 calculado por ordem/nearest rank. Windows 11 build 26300, Intel64 Family 6 Model 142 Stepping 10, PostgreSQL 16.4 nativo, Python 3.12.6; evidência .local/readiness-performance.json. Abaixo da referência informativa de 500 ms neste ensaio, sem alegar SLA, carga concorrente ou desempenho Docker/produção.
+
+Demo consultado em transações somente leitura antes/depois: comparação integral JSON por ID de tickets, ticket_events, triage_attempts e human_reviews **idêntica**, incluindo timestamps/snapshots. Permanece 1 chamado, 3 eventos, 1 tentativa, 0 reviews; chamado histórico ad903cac-a750-48d3-b205-91da97d7adee continua version=5/content_revision=3. Evidências .local/demo-readiness-before.json e after.json. Nenhum servidor demo encerrado/recarregado.
+
+Revisão de preparação: `.local/audit_readiness.py` verificou os 88 arquivos rastreados/novos previstos, 80 links Markdown locais, caracteres Unicode inválidos, artefatos de venv/banco/.env e padrões de tokens/chaves privadas/URLs com credenciais. Nenhum achado final ou link quebrado; a credencial `segredo_demo` em teste de conexão recusada foi inspecionada e confirmada fictícia (o próprio teste exige que não vaze na resposta). Não é garantia de detecção universal de segredos. `git check-ignore` confirmou .env, .venv, .local e reports; .dockerignore reforçado para reports/cache/workspace. Sem dados de empregadores identificados. Diff revisado, `git diff --check` aprovado após corrigir linha vazia no fim do guia, sem incluir workspace preexistente ou dados locais. Qualidade registrada no commit local `6310986`; documentação preparada em commit separado, sem push.
+
+### O que ainda impede a entrega final
+
+1. US01-CA1: disponibilizar Docker/Compose e executar build/start/migração/consulta/reinício com volume em projeto isolado. Não concluído.
+2. Executar workflow no GitHub após autorização de publicação. US07 tem equivalente local aprovado; CI remoto/Linux não executado e permanece gate separado.
+
+US02–US06 sem novo gate manual; US09 preparada/ensaiada no escopo nativo descrito. US08 adiada por decisão de produto, não bloqueia o MVP simulado. A próxima revisão de publicação deve partir destes arquivos concretos e não exigir nova homologação manual de regras já automatizadas. Não houve chamada paga, publicação, PR remoto ou deploy.
+
 ## 08/11/2026 — US06 e dependências funcionais de US03 verificadas automaticamente
 
 ### Escopo, implementação e DoD

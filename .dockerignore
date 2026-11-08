@@ -6,3 +6,6 @@
 __pycache__
 .pytest_cache
 tests
+reports
+.ruff_cache
+*.code-workspace

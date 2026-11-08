@@ -2,7 +2,7 @@
 
 **Visão do MVP — escopo geral aprovado em 07/11/2026.** Este documento descreve o produto completo; implementação e evidências são incrementais e registradas no andamento.
 
-**Atualização de 07/11/2026:** escopo geral aprovado, com definições consolidadas em [decisões aprovadas](08-decisoes-aprovadas.md). D01–D07 aprovadas; D08 adiada, somente simulação. Implementação incremental de US01/US02 em andamento; os demais comportamentos continuam planejados. A tabela abaixo preserva a proposta que foi revisada.
+**Estado em 08/11/2026:** D01–D07 aprovadas; D08/US08 adiada, somente simulação. Fluxo funcional até US06 implementado e validado localmente. Qualidade/documentação de US07/US09 e pendências de Compose/CI remoto estão discriminadas no [andamento](andamento.md). A tabela de decisões abaixo preserva a proposta revisada; não representa integração real de IA.
 
 ## Problema, público e benefícios
 

@@ -1,5 +1,7 @@
 # Ambiente e compatibilidade
 
+Revisão US07/US09 em 08/11/2026: locks mantidos e reinstalados em venv nova, pip check aprovado. Docker novamente ausente; configuração Compose não executada. Workflow revisado com PostgreSQL de serviço em Ubuntu, modo simulado e mesmo pipeline local; timeout limitado a 20 minutos para instalação/regressão, sem inferir execução remota. Fontes oficiais consultadas nesta revisão: [Docker Desktop no Windows e requisitos](https://docs.docker.com/desktop/setup/install/windows-install/) e [GitHub Actions com PostgreSQL de serviço](https://docs.github.com/en/actions/tutorials/use-containerized-services/create-postgresql-service-containers). As versões de actions existentes foram preservadas; a execução em GitHub/Linux continua pendente.
+
 Verificação em 07/11/2026, sem alterações de configurações globais.
 
 | Componente | Encontrado / decisão |

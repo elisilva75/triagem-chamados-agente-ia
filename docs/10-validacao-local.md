@@ -1,33 +1,23 @@
 # Execução e validação local no Windows
 
-US01–US06: cadastro, consulta, edição, triagem exclusivamente simulada, recuperação de falhas, revisão humana e resolução/reabertura. Sem autenticação ou chamadas de IA externas. Usar dados fictícios e manter bind em 127.0.0.1. Executar os comandos na raiz do projeto em PowerShell. Não alterar a política de execução global; se scripts estiverem bloqueados por política da máquina, usar os comandos manuais equivalentes ou informar o impedimento.
+Executar na raiz em PowerShell. Requisitos: Python 3.12.x, PostgreSQL 16 com ferramentas de linha de comando e Git. [Versões e fontes](09-ambiente-e-versoes.md). Somente dados fictícios, AI_MODE=simulated e loopback; não há autenticação.
 
-## Ambiente Python
-
-Python 3.12.x e PostgreSQL 16 são os requisitos nativos. Git é necessário para versionar. Docker Desktop com Compose é alternativa; não está instalado no ambiente desta entrega.
+## Instalação
 
 ```powershell
-python --version
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.lock
 .\.venv\Scripts\python.exe -m pip check
-```
-
-Se .venv já existe desta entrega, pode reutilizá-la. Não é necessário ativar o ambiente nem instalar pacotes globalmente. O lock de produção é `requirements.lock`; o de desenvolvimento inclui ferramentas de teste e lint.
-
-## Alternativa nativa com PostgreSQL já instalado
-
-O serviço PostgreSQL existente não precisa ser iniciado. O script abaixo usa os binários instalados, cria cluster exclusivo em `.local/pgdata`, senha fictícia e acesso somente por loopback. Esse diretório é ignorado pelo Git e não deve ser sincronizado como artefato do projeto nem usado em produção. Idealmente manter o checkout executável fora de pastas sincronizadas pelo OneDrive.
-
-```powershell
 .\scripts\start-test-postgres.ps1
-# Se os binários estiverem em outro lugar:
-# .\scripts\start-test-postgres.ps1 -PgBin 'C:\caminho\PostgreSQL\16\bin'
 ```
 
-O script define TEST_DATABASE_URL apenas na sessão atual. Os testes criam/removem bancos próprios `portfolio_test_<uuid>`; não removem o banco informado. O usuário desse cluster tem permissão para CREATE DATABASE exclusivamente para suportar testes. Não usar credenciais reais nem apontar para banco de trabalho.
+Não é necessário ativar a venv nem alterar a política de execução global. O script reutiliza o cluster .local/pgdata se existir; inicializa somente diretório novo. Usa 127.0.0.1:55432 e banco administrativo portfolio_test, com credencial fictícia. Para outro caminho de instalação, passar -PgBin 'C:\caminho\PostgreSQL\16\bin'. Não inicia o serviço global nem limpa dados. Prefira checkout fora de pasta sincronizada.
 
-Para experimentar a API com dados que sobrevivam aos testes, criar **outro banco** uma única vez:
+O script deve ser executado pelo mesmo usuário que iniciou o cluster. No ensaio pelo Codex, o sandbox não conseguiu reconhecer o processo existente; a reexecução autorizada fora dessa restrição confirmou reutilização sem recriar dados. Uma falha de permissão não significa que o cluster esteja parado: conferir pg_isready/consulta real antes de tentar outra inicialização.
+
+## Demonstração em banco separado
+
+Em instalação nova, criar o banco abaixo **uma única vez**; se já existir, omitir createdb. Nunca apagar o demo para repetir o guia. Testes não devem apontar para ele.
 
 ```powershell
 $env:PGPASSWORD = 'senha_ficticia_teste'
@@ -39,80 +29,35 @@ $env:AI_MODE = 'simulated'
 .\.venv\Scripts\python.exe -m uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8000 --no-access-log
 ```
 
-Se o banco demo já existir, omitir createdb; não apagar dados para repetir o guia. O servidor fica no terminal até Ctrl+C. Em outra janela, abrir `http://127.0.0.1:8000/docs`, ou executar:
+Para ensaio independente, usar outro nome novo (exemplo portfolio_test_ensaio) em createdb e DATABASE_URL, e outra porta da API (18000). Preservar o servidor e o banco demo existentes. Head atual 0004, aplicação 0.5.0. Migração explícita, nunca por requisição; não aplicar downgrade no demo. Não encerrar processos pelo nome genérico Python.
+
+Em outra janela, consultar /health e GET /api/v1/tickets em http://127.0.0.1:8000. Uma consulta real complementa health. Swagger /docs e OpenAPI /openapi.json. [Exemplos completos](16-demonstracao-e-portfolio.md), [contrato](05-api.md). Consultar GET antes de toda escrita em chamado existente para obter expected_version. Demonstração opcional; não repetir homologações antigas.
+
+Ctrl+C encerra a API. Somente quando não houver API/testes usando o cluster, executar scripts/stop-test-postgres.ps1, que preserva os dados.
+
+## Pipeline obrigatório local
 
 ```powershell
-Invoke-RestMethod http://127.0.0.1:8000/health
-$body = @{title='Erro na tela de demonstração'; description='Ao salvar dados fictícios, a tela retorna uma mensagem de erro.'} | ConvertTo-Json
-$ticket = Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/api/v1/tickets -ContentType 'application/json; charset=utf-8' -Body ([System.Text.Encoding]::UTF8.GetBytes($body))
-$ticket
-Invoke-RestMethod "http://127.0.0.1:8000/api/v1/tickets/$($ticket.id)"
-Invoke-RestMethod 'http://127.0.0.1:8000/api/v1/tickets?limit=20&offset=0'
-```
-
-Esperado: health ok; cadastro 201 (visível no Swagger/cliente com status), aberto/pendente, version=1, suggestion/final_classification nulos; consulta devolve o mesmo chamado. Entradas com título de 4 caracteres, descrição menor que 20, campo extra ou status no cadastro geram 422. ID UUID inexistente gera 404. Listagem limita 1–100. PATCH já disponível; seguir [homologação de US03](12-homologacao-us03.md). Triagem simulada implementada; revisão e resolução continuam futuras.
-
-Após atualizar o código para US03, aplicar `alembic upgrade head` (migração 0002 aditiva, sem apagar chamados) e reiniciar apenas a API deste projeto para carregar as novas rotas. Não aplicar downgrade ao banco demo; snapshots seriam removidos. Abrir `/openapi.json` e confirmar info.version=0.2.0, ou atualizar `/docs` com Ctrl+F5 para ver PATCH.
-
-Para parar o cluster, primeiro encerrar servidores da API e testes, depois:
-
-```powershell
-.\scripts\stop-test-postgres.ps1
-```
-
-Não usar `down -v` nem apagar .local para repetir uma validação; dados persistentes devem ser preservados.
-
-## Testes e verificações
-
-```powershell
-.\.venv\Scripts\python.exe -m ruff check .
-.\.venv\Scripts\python.exe -m ruff format --check .
-.\.venv\Scripts\python.exe -m pytest tests/unit -q
-# PostgreSQL real, banco administrativo de teste em cluster separado:
 $env:TEST_DATABASE_URL = 'postgresql+psycopg://portfolio_test:senha_ficticia_teste@127.0.0.1:55432/portfolio_test'
-.\.venv\Scripts\python.exe -m pytest tests/integration tests/api -q
-.\.venv\Scripts\python.exe -m pytest tests/e2e -q
-# Suíte completa e relatório:
-.\.venv\Scripts\python.exe -m pytest -q --junitxml=reports/all.xml
+$env:AI_MODE = 'simulated'
+$env:APP_ENV = 'test'
+.\.venv\Scripts\python.exe scripts/check_quality.py
 ```
 
-Sem TEST_DATABASE_URL, casos que exigem PostgreSQL são **pulados**, não aprovados; o teste de conexão recusada ainda usa o driver real sem servidor ativo. Banco informado inacessível ou inválido produz falha, não skip. Testes não usam SQLite. `tests/unit/test_errors.py` usa mock de sessão e não comprova persistência. `tests/api` usa TestClient dentro do processo **com PostgreSQL real**; `tests/e2e` inicia processo Uvicorn e faz HTTPX por TCP **com PostgreSQL real**.
+Executa pip check, Ruff check/format, unitários, integração/API e HTTP real. Interrompe na primeira falha e rejeita suítes obrigatórias vazias/com skips. JUnit por camada em reports/, ignorado. Fixtures criam bancos únicos portfolio_test_<uuid>, migram do zero e removem somente o banco gerado. A URL administrativa é validada para loopback/prefixo de teste, nunca é limpa. Sem SQLite.
 
-## Docker Compose — configuração ainda não executada nesta máquina
+Execução parcial: Python da venv com -m pytest tests/unit -q. Fora do pipeline, sem TEST_DATABASE_URL os testes PostgreSQL são pulados: isso não comprova persistência. TestClient é HTTP dentro do processo; tests/e2e inicia Uvicorn separado e usa TCP e PostgreSQL reais, com espera limitada. CI usa o mesmo runner, PostgreSQL de serviço e modo simulado, sem chave de IA. Verificação local não equivale à execução de Actions no GitHub.
 
-Após disponibilizar Docker/Compose, verificar `docker version` e `docker compose version`. Porta 5432 deve estar livre. O Compose usa seu próprio volume PostgreSQL e não lê o cluster .local.
+## Docker Compose — execução pendente
+
+Docker não encontrado nesta máquina em 08/11/2026. Pré-requisito: Docker Desktop com mecanismo Linux ativo e Compose. Verificar docker version e docker compose version antes de continuar. Os comandos desta seção **não foram executados**.
+
+O Compose usa volume próprio. A configuração padrão publica 127.0.0.1:5432 e 127.0.0.1:8000. Antes do ensaio, copiar compose.yaml para .local/compose-isolated.yaml, ajustar build para a raiz absoluta do projeto e trocar somente as portas publicadas para 15432 e 18000. Usar projeto exclusivo:
 
 ```powershell
-docker compose config --quiet
-docker compose up --build -d
-docker compose ps -a
-Invoke-RestMethod http://127.0.0.1:8000/health
-docker compose down
+docker compose -p portfolio-isolated -f .local/compose-isolated.yaml config --quiet
+docker compose -p portfolio-isolated -f .local/compose-isolated.yaml up --build -d
+docker compose -p portfolio-isolated -f .local/compose-isolated.yaml ps -a
 ```
 
-`migrate` é um serviço de execução única: sucesso deve aparecer como exited (0), antes de a API iniciar. Os binds publicados são 127.0.0.1:5432 e 127.0.0.1:8000. `down` preserva o volume. O critério US01-CA1 só será integralmente validado após esse caminho funcionar; não foi executado nesta entrega.
-
-## CI
-
-Workflow em `.github/workflows/ci.yml`: Python 3.12, PostgreSQL 16, instalação pelo lock, pip check, Ruff, unitários, integração/API e HTTP real, com relatórios JUnit. Não inclui IA externa, chaves ou serviços pagos. O arquivo foi preparado localmente, sem publicar nem executar no GitHub. Eventuais custos/limites de execução da conta GitHub devem ser revistos quando houver autorização para publicar; não há contratação nesta etapa.
-
-
-## Atualização US04 — cluster e dados existentes
-
-Reutilizar `.local/pgdata` e banco demo existentes; não executar initdb/createdb novamente, não limpar dados. Aplicar apenas `alembic upgrade head` (0003 aditiva) e reiniciar somente a API identificada deste projeto, mantendo DATABASE_URL do demo, AI_MODE=simulated e bind 127.0.0.1:8000. Confirmar OpenAPI info.version=0.3.0 e rotas triage/triage-attempts. O health deve ser complementado por GET real do chamado para conferir o destino persistido. A migração não acontece por requisição.
-
-Homologação curta em [13-homologacao-us04.md](13-homologacao-us04.md); não repetir E01–E04 já aceitos. Retry e recuperação de tentativas expiradas são US05; não prometer que a API já recupera em_analise após interrupção. Docker Compose e CI remota permanecem pendentes.
-
-
-## Atualização US05 — recuperação disponível, demonstração opcional
-
-Sem nova migração, manter esquema 0003 e banco existente. Recarregar somente a API identificada deste projeto com a mesma DATABASE_URL demo, AI_MODE=simulated e bind 127.0.0.1:8000; OpenAPI info.version=0.4.0. Não criar banco novamente nem repetir POST/PATCH para validar a atualização. GET do chamado/histórico complementa health. Critérios de US05 e M02/no-op foram exercitados por automação em bancos isolados; não pedir repetição manual.
-
-Para uso normal após falha, consultar GET para obter versão e decidir se solicita novamente POST triage. Em análise ainda no prazo: 409/triage_in_progress. Após prazo, POST com versão atual encerra anterior como execucao_expirada e adquire a seguinte atomicamente. Não há retry automático; não reiniciar nem limpar banco para destravar tentativa. Detalhes e limites em [validação US05](14-validacao-us05.md). US06 futura; Compose e CI remota pendentes.
-
-
-## Atualização US06 — revisão e ciclo operacional
-
-Reutilizar o cluster/banco existentes, aplicar somente `alembic upgrade head` (0004 aditiva: human_reviews e FK composta), comparar dados preexistentes e recarregar apenas a API identificada do projeto. Não executar initdb, createdb ou downgrade no demo. Mesmas variáveis DATABASE_URL e AI_MODE=simulated, bind 127.0.0.1:8000. Confirmar OpenAPI info.version=0.5.0 e reviews/resolve/reopen, health e GET real do chamado; GET reviews deve estar disponível sem criar revisão. Não alterar chamados para validar a atualização.
-
-Critérios de US06 e pendências funcionais de US03 foram exercitados por automação em bancos isolados. [Demonstração opcional e rastreabilidade](15-validacao-us06.md); não é aceite manual obrigatório. Autor de revisão é declarado, sem autenticação. Docker Compose e CI no GitHub permanecem não executados até evidência própria; não inferir cobertura pelo caminho nativo.
+Exigir migrate exited(0), health 200 e consulta real em 18000. Criar chamado fictício, guardar resposta, executar restart db api com os mesmos argumentos de projeto/arquivo, aguardar health e comparar GET completo. Depois down com os mesmos argumentos, **sem -v**. Não usar projeto/volume demo nem remover volumes. US01-CA1 e persistência Compose continuam pendentes até execução; ensaio nativo não os substitui.

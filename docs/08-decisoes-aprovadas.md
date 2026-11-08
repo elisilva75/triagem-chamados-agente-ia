@@ -1,5 +1,9 @@
 # Decisões aprovadas e limites desta entrega
 
+## Autorização US01/US07/US09 — 08/11/2026
+
+Eliana autorizou avançar nas pendências de ambiente/qualidade/portfólio do MVP simulado: verificar Docker, executar Compose isolado somente se disponível, concluir revisão do workflow e guias, ensaiar ambiente isolado e preparar publicação para revisão futura. Preservar demo e alterações existentes; sem publicar no GitHub, deploy ou chamadas pagas. Decisões técnicas rotineiras e validação automatizada estão autorizadas; não exigir repetição manual de cenários cobertos. Resultado desta autorização em [andamento](andamento.md); Docker ausente não foi convertido em aceite de Compose, nem revisão de workflow em CI remoto aprovado.
+
 Em **07/11/2026**, Eliana aprovou o escopo geral do MVP com as definições abaixo. Não há conflito com D01–D08; D08 foi explicitamente adiada, sem implementação de integração real.
 
 | Decisão | Status e definição aprovada |

@@ -10,9 +10,9 @@
 | US04 | Critérios independentes verificados; M01 manual informado e M02/no-op por automação isolada | Sem gate manual obrigatório; plataforma Docker/CI permanece pendente separadamente |
 | US05 | CA1–CA4 e tasks verificados localmente por automação; regressão ampliada em US06 | Sem demonstração manual obrigatória; Compose/CI pendentes separadamente |
 | US06 | CA1–CA4/T1–T3 e DoD funcional local atendidos; regressão 173 passed/1 warning | Sem gate manual; DoD global do MVP depende de US01/US07/US09 |
-| US07 | Pipeline base e suítes por camada existentes; não concluída | Fluxo US02–US06 disponível para qualificar o pipeline; comprovar isolamento/caminho de falha e CI remota conforme autorização |
+| US07 | CA1–CA3/T1–T3 verificados no equivalente local: pipeline 177 passed, isolamento concorrente e gate de falha/skips | Workflow revisado/preparado; execução remota no GitHub permanece pendente, sem autorização de publicação |
 | US08 | Adiada | Somente provedor simulado autorizado; integração real e orçamento pendentes |
-| US09 | Não iniciada | Guia Windows antecipado só para a entrega atual; portfólio completo futuro |
+| US09 | CA1–CA3/T1–T3 atendidos no escopo nativo isolado: README PT/EN, guia/roteiro ensaiado, portfólio e revisão de arquivos | Sem execução Compose/Linux nem publicação; limites do ensaio discriminados no andamento |
 
 Rastreabilidade dos arquivos, critérios e resultados em [andamento](andamento.md). Nenhuma pendência foi convertida em aceite aprovado.
 

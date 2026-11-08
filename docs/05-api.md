@@ -1,6 +1,6 @@
-# Contrato inicial da API
+# Contrato da API — versão 0.5.0
 
-**Contrato do MVP com implementação parcial (US01–US06).** Prefixo `/api/v1`, JSON UTF-8, campos em inglês e valores de negócio conforme enums documentados. OpenAPI gerado pelo FastAPI descreve apenas os endpoints implementados; rotas futuras estão explicitamente identificadas abaixo.
+**Contrato funcional implementado até US06, em modo simulado.** Prefixo `/api/v1`, JSON UTF-8, campos em inglês e valores de negócio conforme enums documentados. OpenAPI gerado pelo FastAPI é consultável em /openapi.json; Swagger em /docs. [Sequência executável com corpos completos](16-demonstracao-e-portfolio.md). US08 não faz parte deste contrato.
 
 **Estado da entrega US01–US06:** disponíveis GET `/health`, POST/GET `/api/v1/tickets`, GET/PATCH `/api/v1/tickets/{ticket_id}`, POST `/api/v1/tickets/{ticket_id}/triage` e GET `/api/v1/tickets/{ticket_id}/triage-attempts`. OpenAPI usa ticket_id. Retry e recuperação por prazo implementados em US05. Revisão humana, classificação final, resolução/reabertura e consultas de reviews implementadas em US06, nas rotas da tabela abaixo.
 

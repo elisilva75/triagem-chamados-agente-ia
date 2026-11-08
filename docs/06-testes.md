@@ -1,6 +1,6 @@
 # Estratégia de testes e avaliação
 
-**Estratégia do MVP aprovado.** Plano completo abaixo; execução incremental de US01/US02 e resultados reais em [andamento](andamento.md). Suítes de edição e agente simulado implementadas até US04; revisão continua futura. O guia [Windows](10-validacao-local.md) distingue mocks, driver real, PostgreSQL real, testes dentro do processo e HTTP por TCP.
+**Estratégia do MVP aprovado, implementada até US07.** Pipeline local compartilhado com CI em scripts/check_quality.py: pip check, Ruff, 98 unitários, 77 integração/API e 2 HTTP real (177 passed, sem skips). Quatro testes novos verificam interrupção do pipeline, configuração obrigatória e rejeição de relatórios vazios/com skips; o restante reaproveita as suítes existentes, incluindo revisão humana/edição/invalidação. Duas execuções concorrentes do roundtrip de migração comprovaram bancos distintos registrados em JUnit. [Resultados e limites](andamento.md); [guia Windows](10-validacao-local.md). CI remota e Compose não executados. O aviso TestClient/HTTPX permanece visível. Não há percentual de cobertura de linhas medido; relatórios e rastreabilidade documentam os caminhos críticos.
 
 ## Camadas e isolamento
 

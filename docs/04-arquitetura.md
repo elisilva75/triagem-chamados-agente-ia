@@ -2,15 +2,15 @@
 
 **Arquitetura do MVP — implementação incremental até US06.** Fundação, cadastro, consulta, edição, agente simulado, recuperação/retry, revisão humana e resolução/reabertura implementados. Os complementos por história ao final atualizam o desenho inicial abaixo.
 
-**Atualização:** ADR01/ADR02/ADR06 aceitas para US01/US02 em 07/11/2026. Fundação e cadastro/consulta implementados; ferramentas/agente/revisão permanecem futuros. [Decisões aprovadas](08-decisoes-aprovadas.md), [ambiente/versões](09-ambiente-e-versoes.md) e [andamento](andamento.md) prevalecem sobre o status inicial acima. Migração 0001 cria Ticket e TicketEvent; tabelas/referências de tentativas e revisões serão criadas nas respectivas histórias, sem antecipar funcionalidades.
+**Estado atual:** migrações 0001–0004 criam chamados, eventos/snapshots, tentativas e revisões humanas. ADR01–ADR10 foram implementadas incrementalmente; os complementos abaixo preservam a motivação de cada etapa. [Decisões aprovadas](08-decisoes-aprovadas.md), [ambiente/versões](09-ambiente-e-versoes.md) e [andamento](andamento.md) registram aceite e evidências. Somente provedor simulado existe; US08 está adiada.
 
-## Estrutura proposta
+## Estrutura implementada
 
-Monólito modular FastAPI: rotas e schemas Pydantic → serviços de aplicação → domínio/repositórios → PostgreSQL com SQLAlchemy e Alembic. O serviço de triagem usa um orquestrador de agente → interface `AIProvider` → simulador ou adaptador real. Ferramentas locais consultam catálogo e política, sem rede ou escrita no banco.
+Monólito modular FastAPI: rotas e schemas Pydantic → serviços de aplicação → domínio/repositórios → PostgreSQL com SQLAlchemy e Alembic. O serviço de triagem usa orquestrador → interface AIProvider → simulador. Ferramentas locais consultam catálogo e política, sem rede ou escrita no banco. Adaptador real é evolução de US08, ausente nesta versão.
 
-Diretórios futuros: `app/api`, `app/application`, `app/domain`, `app/infrastructure`, `app/agent`, `migrations`, `tests/unit`, `tests/integration`, `tests/api`, `tests/e2e`, `tests/agent`. Não criar abstrações de microserviços, broker, RAG ou framework de agentes sem necessidade comprovada.
+Diretórios existentes: app/api, app/application, app/domain, app/infrastructure, app/agent, migrations e testes separados em unit/integration/api/e2e. Casos do agente ficam em tests/unit, sem diretório tests/agent. Sem microserviços, broker, RAG ou framework externo de agentes.
 
-## Decisões propostas
+## Decisões arquiteturais
 
 - ADR01: PostgreSQL também nos testes de integração; necessário para testar transações, índices e concorrência reais. SQLite não representa essas garantias.
 - ADR02: cadastro e triagem separados. Confirmar transação de cadastro antes de chamar modelo elimina dependência de IA para registrar o chamado.
@@ -19,24 +19,26 @@ Diretórios futuros: `app/api`, `app/application`, `app/domain`, `app/infrastruc
 - ADR05: simulador implementa o mesmo protocolo de tool calls do provedor. Não se apresenta como modelo inteligente real; serve para demonstrar orquestração e falhas reproduzíveis.
 - ADR06: sem autenticação no MVP local, conforme D01. Autor de revisão é texto declarado, não evidência de identidade. Autorização será requisito antes de uso público.
 
-Cada ADR deverá ganhar status aceito/data após revisão. A base técnica solicitada é mantida. Versões exatas, matriz Python/SDK/driver e fontes oficiais serão pesquisadas antes de US01; nenhum número de versão ou compatibilidade foi presumido como validado nesta entrega.
+As decisões de produto e autorizações constam no documento 08; versões exatas, compatibilidade e fontes oficiais constam no documento 09. Não há SDK externo de IA. A validação nativa não comprova Docker/Linux nem CI remoto.
 
 ## Modelo de dados
 
 | Entidade | Campos principais e restrições |
 |---|---|
-| Ticket | id UUID PK; title; description; status; triage_status; content_revision ≥ 1; version ≥ 1; current_attempt_id nullable; current_review_id nullable; created_at; updated_at |
+| Ticket | id UUID PK; title; description; status; triage_status; content_revision ≥ 1; version ≥ 1; suggestion/final_classification JSONB nullable; created_at; updated_at |
 | TriageAttempt | id UUID PK; ticket_id FK; attempt_number; content_revision; status (em_analise/sucesso/falha); mode; provider/model nullable; catalog_version; policy_version; started_at; deadline_at; finished_at nullable; category/priority/rationale/missing_fields nullable; error_code nullable; model_calls; tool_calls |
 | HumanReview | id UUID PK; ticket_id FK; attempt_id FK; content_revision; category; priority; reason; declared_reviewer; created_at |
-| TicketEvent | id UUID PK; ticket_id FK; type (criado/editado/resolvido/reaberto); content_revision; created_at |
+| TicketEvent | id UUID PK; ticket_id FK; type (criado/editado/resolvido/reaberto); content_revision; previous_classification JSONB nullable; created_at |
 
 Catálogo e política são dados locais versionados, sem CRUD no MVP. Enums/constraints no banco e schemas na borda limitam valores; FK de referência atual deve pertencer ao mesmo chamado (restrição composta ou checagem transacional com teste). Unicidade `(ticket_id, attempt_number)` e índice único parcial para tentativa ativa por ticket. Estado persistido de sucesso corresponde a triagem `sugerida` no Ticket; revisão não altera a tentativa bem-sucedida.
 
 Edição mantém tentativas e revisões antigas, limpa referências atuais e registra evento; não guardar cópias integrais de cada texto no MVP. Essa limitação impede reconstruir textos antigos e será declarada na demonstração. Histórico não será mecanismo de auditoria legal.
 
-Controle de concorrência usa `version` do Ticket em comparação atômica. Começar triagem incrementa version e define current_attempt_id; finalizar exige que tentativa ainda seja a ativa, em análise e dentro do prazo, então incrementa version novamente. Qualquer resultado obsoleto é descartado. Escritas de conteúdo/revisão bloqueadas durante análise. Não manter conexão/transação aberta enquanto aguarda o provedor.
+Controle de concorrência compara version sob lock do Ticket. Começar triagem incrementa version e insere tentativa ativa (índice parcial único); finalizar exige mesma tentativa ativa, revisão, versão e prazo, então incrementa version novamente. Não existe coluna current_attempt_id no Ticket: a identidade é capturada pelo serviço e validada na finalização. Resultado obsoleto é descartado. Conteúdo/revisão ficam bloqueados durante análise. Nenhuma conexão/transação permanece aberta enquanto aguarda o provedor.
 
-## Complemento de US03 — ADR07: projeção e snapshot de classificação
+## Complemento histórico de US03 — ADR07: projeção e snapshot de classificação
+
+Este trecho registra a etapa anterior a US04/US06. Na versão atual, sugestão e classificação final são produzidas pelas rotas implementadas; ADR08–ADR10 abaixo descrevem o desenho final.
 
 Decisão técnica para cumprir RN11 antes de US04/US06: migração 0002 adiciona `Ticket.suggestion` e `Ticket.final_classification` como JSONB nullable e `TicketEvent.previous_classification` como JSONB nullable. Não há endpoint para definir esses campos; cadastro/PATCH rejeitam sua entrada. Schemas de leitura validam categorias/prioridades pelos enums centrais. Na produção atual ambos permanecem nulos; testes usam fixtures fictícias explicitamente identificadas para comprovar invalidação de classificação existente.
 

@@ -1,5 +1,7 @@
 # Triagem Inteligente de Chamados
 
+[English](README.en.md) · API local de portfólio, versão 0.5.0.
+
 Portfólio de **Eliana Gomes da Silva**, Analista de Sistemas Sênior com experiência em QA, automação e desenvolvimento.
 
 **Escopo aprovado — US01–US06 implementadas; IA exclusivamente simulada.** Revisão humana, classificação final, resolução e reabertura disponíveis. Critérios independentes de US02–US06 e integração de edição/classificação são verificados localmente; resultados e limites no andamento. PostgreSQL e migrações nativas verificados. Docker Compose e CI no GitHub permanecem pendentes; US01 não está totalmente validada.
@@ -37,6 +39,25 @@ O agente simulado usa roteiros reproduzíveis, duas ferramentas locais somente l
 
 Somente dados fictícios. Não publicar, fazer deploy ou contratar serviços sem autorização. O MVP proposto será local, sem autenticação; não está previsto uso público nessa configuração.
 
-## Próximo passo
+## Instalação e testes
 
-Validação técnica automatizada é o caminho atual; demonstrações manuais curtas são opcionais. Não repetir E01–E04, M02 ou no-op já cobertos. Integração de US03 com classificação final/resolvido coberta por US06; não há gate manual obrigatório. Faltam finalizar ambiente de US01/Compose, US07 (pipeline/qualidade) e US09 (portfólio/guia completo). Pendências de US01/Compose e CI remota preservadas. US08 adiada; README em inglês e roteiro completo permanecem para US09.
+Requisitos: Python 3.12.x, PostgreSQL 16 e Git. Na raiz, em PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.lock
+.\scripts\start-test-postgres.ps1
+$env:AI_MODE = 'simulated'
+$env:APP_ENV = 'test'
+.\.venv\Scripts\python.exe scripts/check_quality.py
+```
+
+O script PostgreSQL define TEST_DATABASE_URL na sessão. O pipeline cria bancos exclusivos, não limpa o banco recebido e bloqueia falhas/skips obrigatórios. Relatórios JUnit ficam em reports/, ignorado pelo Git. Para iniciar API, criar banco de demonstração **somente se ainda não existir**, definir DATABASE_URL, aplicar `alembic upgrade head` e iniciar Uvicorn em loopback: comandos completos no [guia Windows](docs/10-validacao-local.md). Health deve ser complementado por GET real. Não executar downgrade nem limpar o demo.
+
+## Demonstração e portfólio
+
+[Roteiro curto, corpos das requisições e descrição do projeto](docs/16-demonstracao-e-portfolio.md). A demonstração é opcional; verificações automatizadas não são homologação manual de Eliana. O desenvolvimento teve assistência de IA para implementação, testes e documentação, sob decisões de produto e revisão de Eliana. Essa assistência é distinta do simulador da aplicação.
+
+## Pendências de entrega
+
+Não repetir E01–E04, M02 ou no-op já cobertos. Integração de US03 com classificação final/resolvido coberta por US06; sem gate manual obrigatório. US01 continua dependente de execução Compose (Docker indisponível). A revisão e execução locais de US07 e o ensaio/documentação de US09 têm evidências em [andamento](docs/andamento.md); CI remota permanece pendente e não é inferida dos testes locais. US08 adiada não bloqueia o MVP simulado. Nenhuma publicação ou deploy autorizado nesta entrega.
