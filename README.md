@@ -2,11 +2,11 @@
 
 Portfólio de **Eliana Gomes da Silva**, Analista de Sistemas Sênior com experiência em QA, automação e desenvolvimento.
 
-**Escopo aprovado — US01–US04 implementadas; US04 em validação.** Eliana aceitou os cenários manuais E01–E04 de edição; US03 mantém pendências específicas de classificação existente. Triagem exclusivamente simulada aguarda homologação. PostgreSQL e migrações nativas verificados. Docker Compose e CI no GitHub permanecem pendentes; US01 não está totalmente validada.
+**Escopo aprovado — US01–US05 implementadas, exclusivamente simuladas.** Critérios independentes de US04 verificados, incluindo M02/no-op por automação; US05 implementa retry e recuperação após interrupção. Eliana aceitou E01–E04 de edição; US03 mantém integração com classificação final/resolvido dependente de US06. PostgreSQL e migrações nativas verificados. Docker Compose e CI no GitHub permanecem pendentes; US01 não está totalmente validada.
 
 O produto proposto registra chamados por API e usa um agente de IA para sugerir categoria, prioridade e informações ausentes. A pessoa revisora decide a classificação final. Falhas da IA preservam o chamado e permitem nova tentativa.
 
-Nesta entrega estão disponíveis `/health`, criação/listagem em `/api/v1/tickets` e GET/PATCH `/api/v1/tickets/{ticket_id}`, POST `/api/v1/tickets/{ticket_id}/triage` e GET `/api/v1/tickets/{ticket_id}/triage-attempts`, além de `/docs` e `/openapi.json`. PATCH exige expected_version; edição efetiva invalida classificação e preserva seu snapshot no histórico. Triagem simulada disponível; retry/recuperação, revisão e resolução continuam futuros. Cadastro/edição não chamam IA; `AI_MODE` aceita somente `simulated`.
+Nesta entrega estão disponíveis `/health`, criação/listagem em `/api/v1/tickets` e GET/PATCH `/api/v1/tickets/{ticket_id}`, POST `/api/v1/tickets/{ticket_id}/triage` e GET `/api/v1/tickets/{ticket_id}/triage-attempts`, além de `/docs` e `/openapi.json`. PATCH exige expected_version; edição efetiva invalida classificação e preserva seu snapshot no histórico. Triagem simulada, retry explícito e recuperação por prazo disponíveis; revisão e resolução continuam futuros. Cadastro/edição não chamam IA; `AI_MODE` aceita somente `simulated`.
 
 Para executar e testar no Windows, seguir o [guia de validação local](docs/10-validacao-local.md), que oferece PostgreSQL nativo e a configuração Compose ainda não executada. Requisitos e versões em [ambiente](docs/09-ambiente-e-versoes.md). Usar exclusivamente dados fictícios em loopback; sem autenticação, não disponibilizar publicamente.
 
@@ -25,7 +25,8 @@ Para executar e testar no Windows, seguir o [guia de validação local](docs/10-
 - [Execução, testes e validação no Windows](docs/10-validacao-local.md)
 - [Homologação informada de US01/US02](docs/11-homologacao-us01-us02.md)
 - [Roteiro e resultados de homologação de US03](docs/12-homologacao-us03.md)
-- [Homologação curta de US04: sugestão, edição e falha](docs/13-homologacao-us04.md)
+- [Registro US04: relatos manuais e validação técnica automatizada](docs/13-homologacao-us04.md)
+- [Validação técnica de US05 e demonstração opcional](docs/14-validacao-us05.md)
 
 ## Base técnica proposta
 
@@ -37,4 +38,4 @@ Somente dados fictícios. Não publicar, fazer deploy ou contratar serviços sem
 
 ## Próximo passo
 
-Eliana valida US04 pelo roteiro curto e a invalidação de sugestão por edição. Não repetir E01–E04 já aceitos. US03 permanece com pendências específicas, incluindo classificação final dependente de US06; US05/US06 não iniciadas. Pendências de US01/Compose e CI remota preservadas. US08 adiada; README em inglês e roteiro completo permanecem para US09.
+Validação técnica automatizada é o caminho atual; demonstrações manuais curtas são opcionais. Não repetir E01–E04, M02 ou no-op já cobertos. US03 mantém lacunas de integração com classificação final/resolvido dependentes de US06; US06 não iniciada. Pendências de US01/Compose e CI remota preservadas. US08 adiada; README em inglês e roteiro completo permanecem para US09.

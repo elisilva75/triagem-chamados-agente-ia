@@ -65,3 +65,12 @@ Manter no andamento: IDs de CA, arquivos alterados, comandos completos, ambiente
 Homologação manual curta em [US04](13-homologacao-us04.md), aguardando relato de Eliana. E01–E04 de US03 aceitos; testes não substituem pendências manuais específicas. Docker Compose e CI remota continuam não executados.
 
 As fixtures implementadas AV06/AV08 explicitam “sem bloqueio” antes de qualquer texto hostil para representar baixo impacto. Sem impacto informado, inclusive em dúvidas, o roteiro usa média provisória e inclui impacto nos ausentes; isso não é avaliação de interpretação por IA real.
+
+
+## US05 e estratégia vigente de validação
+
+Participação de Eliana em decisões de produto e demos curtas opcionais. Não exigir repetição no Swagger de cenários automatizados. Origem separada: M01 relatado manualmente por Eliana; M02, timestamp funcional do no-op e recuperação US05 são validação técnica automatizada.
+
+Suíte US05: `tests/api/test_recovery.py` cobre retry depois de timeout/indisponibilidade/saída inválida, primeira tentativa imutável, conteúdo preservado e versões; dois POSTs concorrentes com uma só nova execução; limite de finalização 19,999/20/20,001 s; CHECK real inválido no banco durante finalização, rollback e recuperação. `tests/integration/test_recovery.py` cobre resultado tardio após recuperação sem alterar nada no vencedor e atomicidade da recuperação/aquisição com CHECK real inválido. `tests/e2e/test_recovery.py` inicia Uvicorn em processo nativo identificado pelo próprio teste, encerra o servidor por factory exclusiva dos testes após persistir a aquisição, reinicia sobre o mesmo banco isolado e aguarda deadline real de 20 s para recuperar. Não modifica prazo no banco desse ensaio.
+
+Reutilizados/fortalecidos os testes existentes de M02 e no-op em `tests/api/test_triage.py`, sem novas cópias; integração de snapshots existente também executada. Fixture conftest cria bancos portfolio_test_<uuid> exclusivos e descarta somente os bancos criados pelo teste. Demo comparado em SQL somente leitura antes/depois. Sem chamadas externas, dependências ou migrações novas. Contagens/comandos efetivamente executados em andamento e [validação US05](14-validacao-us05.md).

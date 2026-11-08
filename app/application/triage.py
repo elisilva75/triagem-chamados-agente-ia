@@ -15,6 +15,10 @@ from app.infrastructure.models import Ticket, TriageAttempt
 logger = logging.getLogger(__name__)
 
 
+def utc_now():
+    return datetime.now(timezone.utc)
+
+
 class TriageFailure(TicketError):
     def __init__(self, code, ticket_id, attempt_id):
         status = 504 if code == "ai_timeout" else 503 if code == "ai_unavailable" else 502
@@ -24,7 +28,8 @@ class TriageFailure(TicketError):
         ]
 
 
-def triage_ticket(sessions, ticket_id, expected_version, provider: AIProvider):
+def triage_ticket(sessions, ticket_id, expected_version, provider: AIProvider, *, clock=None):
+    clock = clock or utc_now
     started = time.monotonic()
     # A tentativa é confirmada antes de executar qualquer ferramenta/provedor.
     with sessions() as session, session.begin():
@@ -33,14 +38,31 @@ def triage_ticket(sessions, ticket_id, expected_version, provider: AIProvider):
             raise TicketError(404, "not_found", "Chamado não encontrado.")
         if ticket.version != expected_version:
             raise TicketError(409, "version_conflict", "Consulte a versão atual.")
-        if ticket.status != "aberto" or ticket.triage_status != "pendente":
-            # Retry/recuperação de prazo são US05; falha só sai por edição efetiva nesta entrega.
-            raise TicketError(
-                409,
-                "invalid_transition",
-                "Triagem exige chamado aberto e pendente; recuperação de falha permanece em US05.",
+        if ticket.status != "aberto":
+            raise TicketError(409, "invalid_transition", "Triagem exige chamado aberto.")
+        now = clock()
+        if ticket.triage_status == "em_analise":
+            active = session.scalar(
+                select(TriageAttempt).where(
+                    TriageAttempt.ticket_id == ticket_id, TriageAttempt.status == "em_analise"
+                )
             )
-        now = datetime.now(timezone.utc)
+            if active is None:
+                raise TicketError(409, "invalid_transition", "Tentativa ativa indisponível.")
+            if now < active.deadline_at:
+                raise TicketError(409, "triage_in_progress", "A tentativa ainda está no prazo.")
+            # Recuperação e aquisição da nova execução são uma única transação.
+            active.status = "falha"
+            active.error_code = "execucao_expirada"
+            active.finished_at = now
+            active.suggestion = None
+            ticket.triage_status = "falha"
+            ticket.version += 1
+            ticket.updated_at = now
+            # Liberar índice parcial antes de inserir a tentativa seguinte.
+            session.flush()
+        if ticket.triage_status not in ("pendente", "falha"):
+            raise TicketError(409, "invalid_transition", "O chamado não permite nova triagem.")
         number = (
             session.scalar(
                 select(func.coalesce(func.max(TriageAttempt.attempt_number), 0)).where(
@@ -62,6 +84,7 @@ def triage_ticket(sessions, ticket_id, expected_version, provider: AIProvider):
         )
         session.add(attempt)
         ticket.triage_status = "em_analise"
+        ticket.suggestion = None
         ticket.version += 1
         ticket.updated_at = now
         session.flush()
@@ -69,13 +92,11 @@ def triage_ticket(sessions, ticket_id, expected_version, provider: AIProvider):
         title, description = ticket.title, ticket.description
         deadline = attempt.deadline_at
     # Nenhuma sessão/conexão mantida durante o agente.
-    result = run_agent(
-        provider, title, description, budget=(deadline - datetime.now(timezone.utc)).total_seconds()
-    )
+    result = run_agent(provider, title, description, budget=(deadline - clock()).total_seconds())
     with sessions() as session, session.begin():
         ticket = session.scalar(select(Ticket).where(Ticket.id == ticket_id).with_for_update())
         attempt = session.get(TriageAttempt, attempt_id)
-        now = datetime.now(timezone.utc)
+        now = clock()
         if (
             ticket.version != active_version
             or ticket.content_revision != revision

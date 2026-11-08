@@ -41,8 +41,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(
         title="Triagem de Chamados — uso local sem autenticação",
-        version="0.3.0",
-        description="Cadastro, consulta, edição e triagem exclusivamente simulada. Uso local.",
+        version="0.4.0",
+        description=(
+            "Cadastro, consulta, edição, triagem simulada e recuperação de falhas. Uso local."
+        ),
         lifespan=lifespan,
         responses={code: {"model": ErrorResponse} for code in (404, 409, 422, 500, 502, 503, 504)},
     )

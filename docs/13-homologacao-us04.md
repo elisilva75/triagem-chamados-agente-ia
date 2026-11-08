@@ -1,6 +1,6 @@
 # Homologação US04 — triagem exclusivamente simulada
 
-**M01a–M01c com homologação manual informada por Eliana; M02 pendente.** Alcance e limitações no complemento ao final. E01–E04 de US03 foram aceitos e não serão repetidos. Usar apenas dados fictícios em http://127.0.0.1:8000/docs (Ctrl+F5); API 0.3.0, PostgreSQL demo migrado para 0003 conforme evidências no andamento. US04 ainda não encerrada.
+**M01a–M01c com homologação manual informada por Eliana; M02/no-op validados por automação isolada.** Alcance e limitações no complemento ao final. E01–E04 de US03 foram aceitos e não serão repetidos. Usar apenas dados fictícios em http://127.0.0.1:8000/docs (Ctrl+F5); API 0.3.0, PostgreSQL demo migrado para 0003 conforme evidências no andamento. Critérios independentes atendidos; demonstração manual adicional opcional, sem bloquear US05.
 
 ## M01 — sugestão e invalidação por edição (US04-CA1/CA4; pendências específicas US03)
 

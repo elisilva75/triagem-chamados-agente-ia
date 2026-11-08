@@ -1,5 +1,55 @@
 # Andamento e continuidade
 
+## 08/11/2026 — US05 implementada e validada tecnicamente; demo preservado
+
+### Autorização e rastreabilidade
+
+Após executar M02/no-op por automação e verificar os critérios independentes de US04 (registro imediatamente abaixo), iniciada US05 na branch local `feat/us05-triage-recovery`, a partir do commit local `1d48ec4` da validação US04. Sem iniciar US06, sem publicar ou fazer deploy. Demonstrações manuais agora são opcionais; nenhum teste técnico foi atribuído a homologação manual de Eliana. Alterações anteriores e arquivo workspace preservados.
+
+| Critério/task | Implementação e teste | Resultado executado |
+|---|---|---|
+| US05-CA1/T1/T2 | application/triage.py aceita retry em falha; test_us05_ca1_retry_preserves_content_and_failed_attempt | Timeout 504/ai_timeout, indisponibilidade 503/ai_unavailable e saída inválida 502/invalid_ai_response seguidos de retry com provedor simulado válido: mesmo chamado, conteúdo/revisão/criação preservados, versões 1→3→5, primeira tentativa imutável, sem eventos de conteúdo extras |
+| US05-CA2/T2 | Lock de linha e índice parcial existentes; test_us05_ca2_two_simultaneous_retry_posts_run_one_agent | Dois POSTs simultâneos de retry com mesma versão: um 200, outro 409; só um agente executado e uma tentativa adicional. Barreira/Event determinísticos; PostgreSQL real |
+| US05-CA3/T1/T2 | Recuperação de tentativa ativa vencida + finalização condicional; testes de fronteira/atraso | 19,999 s aceita resultado, 20/20,001 s rejeitam como ai_timeout; lease válido bloqueia com triage_in_progress sem escrita; resultado antigo após recuperação recebe 409/version_conflict e não altera vencedor/histórico |
+| US05-CA3/T2 HTTP real | tests/e2e/test_recovery.py e factory exclusiva tests/interrupted_server.py | Servidor Uvicorn encerrou realmente com código 17 após confirmar aquisição; novo servidor no mesmo banco de teste leu em_analise/version=2, bloqueou retry dentro do prazo, aguardou lease real de 20 s e recuperou com tentativa 2/sucesso/version=5. Sem alterar deadline no banco |
+| US05-CA4/T2 | test_us05_ca4_real_constraint_failure_rolls_back_finalization_then_recovers | CHECK real inválido durante finalização: 503/storage_unavailable, sem falso contexto de falha persistida; tentativa continuou ativa/version=2 sem sugestão. Após prazo, nova solicitação recuperou e concluiu; conteúdo preservado |
+| US05-T1/T2 atomicidade | test_us05_recovery_and_new_attempt_are_atomic | CHECK real inválido ao inserir próxima tentativa reverte também encerramento da anterior e versões; após retirar somente a injeção de teste, nova solicitação conclui normalmente |
+| Regressão US01–US04/T2 | Suíte completa existente + novos casos US05, sem duplicar M02/no-op | Cadastro/consulta/edição/limites/snapshots/migração/agente anteriores preservados; M02/no-op tiveram apenas asserções faltantes adicionadas aos testes existentes |
+| US05-T3 | ADR09, contrato, README, backlog, guia e docs/14-validacao-us05.md | Códigos, retry explícito, prazo, versões, resultados e lacunas documentados; sem exigência de repetição manual |
+
+Recuperação + nova aquisição são uma única transação sob lock; flush libera índice ativo antes de inserir a seguinte. Recuperação de em_analise→falha incrementa version uma vez, aquisição outra e finalização outra (exemplo 2→5). Retry de falha normal soma duas (3→5). Versão antiga falha antes de qualquer recuperação. Tentativas concluídas não são sobrescritas; eventos de conteúdo não são criados por retry. Sem nova migração: esquema continua 0003. Sem dependências adicionadas/atualizadas, mesmos locks/fontes oficiais; aplicação 0.4.0.
+
+### Execuções reais
+
+Comandos na raiz:
+
+```powershell
+.\.venv\Scripts\python.exe -m ruff check .
+.\.venv\Scripts\python.exe -m ruff format --check .
+.\.venv\Scripts\python.exe -m pip check
+$env:TEST_DATABASE_URL='postgresql+psycopg://portfolio_test:senha_ficticia_teste@127.0.0.1:55432/portfolio_test'
+.\.venv\Scripts\python.exe -m pytest tests/api/test_recovery.py -q --junitxml=reports/us05-api-focused.xml
+.\.venv\Scripts\python.exe -m pytest tests/integration/test_recovery.py tests/e2e/test_recovery.py -q --junitxml=reports/us05-recovery-focused.xml
+.\.venv\Scripts\python.exe -m pytest -q --junitxml=reports/us05-all.xml
+```
+
+**Foco API: 8 passed, 1 warning, 23,34 s. Foco integração/HTTP real: 3 passed, 1 warning, 30,62 s. Regressão completa final: 135 passed, 1 warning, 224,88 s; nenhuma falha, erro ou skip.** Relatório XML conferido: 73 unitários, 47 API dentro do processo com PostgreSQL real, 13 integração (12 com PostgreSQL ativo e um de conexão recusada com driver real), 2 HTTP/TCP com Uvicorn e PostgreSQL real. Cada caso com banco ativo criou/descartou somente seu portfolio_test_<uuid>. Não usou SQLite ou demo. Relatórios em reports/ ignorados pelo Git.
+
+Ruff check/format e pip check aprovados. Falhas iniciais de lint por linhas longas/formatação foram corrigidas; nenhuma execução pytest desta etapa falhou. Aviso conhecido Starlette/TestClient sobre HTTPX continua registrado, sem pacote extra para escondê-lo. O teste HTTP de interrupção usa binário nativo CPython e PYTHONPATH dos mesmos pacotes da .venv para controlar o processo criado no Windows; não prova execução Linux/Docker/CI. Testes de fronteira e resposta tardia usam relógio controlado no serviço; o ensaio HTTP usa prazo real. Factory os._exit fica exclusivamente em tests/, não há opção de encerramento do servidor na API de produção. Nenhuma chamada de IA real, custo ou avaliação semântica de modelo externo.
+
+### Preservação e ambiente local
+
+Comparação SQL **somente leitura** antes/depois de todas as execuções e novamente após recarregar a API: todos os campos de tickets/ticket_events/triage_attempts **integralmente iguais**. Snapshots locais ignorados `.local/demo-us05-before.json` e `.local/demo-us05-after.json`: **1 chamado, 3 eventos, 1 tentativa**. Chamado ad903cac-a750-48d3-b205-91da97d7adee mantém version=5/content_revision=3, pendente/suggestion=null. Nenhum POST/PATCH, criação de chamado, alteração de prazo ou migração no demo nesta etapa; fixture inválida criada somente nos bancos de teste.
+
+Somente a API do projeto foi recarregada: comandos/executável absoluto da .venv/parentesco reconferidos para launcher 17332 e servidor 3504 antes de encerrá-los. Novo launcher PID **3524** (reconferir identidade antes de encerrar); logs `.local/api-us05.*`. Mesmo DATABASE_URL demo, AI_MODE=simulated e bind 127.0.0.1:8000; não alterados .env/serviço global/configuração do PostgreSQL. /health, /docs, /openapi.json, GET do chamado e GET de tentativas retornaram 200; OpenAPI confirmou 0.4.0, chamado 5/3 e histórico total=1. API/banco deixados ativos, sem garantia de sobreviver a encerramento da sessão do sistema.
+
+### Lacunas e próximo escopo
+
+**US05-CA1–CA4 verificados localmente por automação; implementação e documentação entregues.** Nenhum aceite manual obrigatório criado. US04 sem lacuna independente de M02/no-op: validados tecnicamente, demos opcionais. US03 mantém lacunas de validação integrada com classificação final humana/resolvido pelas futuras rotas de US06; lógica já possui fixtures, e o timestamp histórico de um no-op manual específico não pode ser reconstruído depois de outra edição. Não exigir repetição manual para suprir evidência histórica ou regras já automatizadas. Não iniciar US06 sem nova instrução de continuidade.
+
+**Docker Compose e CI no GitHub continuam pendentes; US01 parcialmente validada.** US07 não concluída, US08 adiada; sem modelo real/tokenizer real e sem garantia de preempção de provedor Python arbitrariamente bloqueante (simulador atual é imediato e sem I/O, interface exige respeito ao prazo). US06/revisão/resolução não implementadas. Nada publicado ou implantado; exclusivamente loopback e AI_MODE=simulated. Evidências e demonstração opcional em [14-validacao-us05.md](14-validacao-us05.md).
+
+
 ## 08/11/2026 — M02/no-op validados por automação; continuidade US05 autorizada
 
 Eliana alterou explicitamente a estratégia de aceite: participação em decisões de produto e demonstrações curtas opcionais; não exigir repetição manual de verificações automatizadas. Autorizou iniciar US05 se critérios independentes atendidos. Não atribuir testes do agente a homologação manual da usuária. US06 continua fora desta implementação; Docker Compose/CI permanecem pendentes.

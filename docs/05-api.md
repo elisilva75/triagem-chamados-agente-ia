@@ -1,8 +1,8 @@
 # Contrato inicial da API
 
-**Contrato do MVP com implementação parcial (US01–US04).** Prefixo `/api/v1`, JSON UTF-8, campos em inglês e valores de negócio conforme enums documentados. OpenAPI gerado pelo FastAPI descreve apenas os endpoints implementados; rotas futuras estão explicitamente identificadas abaixo.
+**Contrato do MVP com implementação parcial (US01–US05).** Prefixo `/api/v1`, JSON UTF-8, campos em inglês e valores de negócio conforme enums documentados. OpenAPI gerado pelo FastAPI descreve apenas os endpoints implementados; rotas futuras estão explicitamente identificadas abaixo.
 
-**Estado da entrega US01–US04:** disponíveis GET `/health`, POST/GET `/api/v1/tickets`, GET/PATCH `/api/v1/tickets/{ticket_id}`, POST `/api/v1/tickets/{ticket_id}/triage` e GET `/api/v1/tickets/{ticket_id}/triage-attempts`. OpenAPI usa ticket_id. Revisão, resolução, reabertura e recuperação/retry de falha são futuros (US05/US06).
+**Estado da entrega US01–US05:** disponíveis GET `/health`, POST/GET `/api/v1/tickets`, GET/PATCH `/api/v1/tickets/{ticket_id}`, POST `/api/v1/tickets/{ticket_id}/triage` e GET `/api/v1/tickets/{ticket_id}/triage-attempts`. OpenAPI usa ticket_id. Retry e recuperação por prazo implementados em US05. Revisão, resolução e reabertura permanecem futuros (US06).
 
 ## PATCH implementado em US03
 
@@ -100,6 +100,24 @@ POST de criação não é idempotente: repetir após perda de resposta pode dupl
 
 ## Contrato implementado de US04
 
-POST triage recebe somente expected_version inteiro estrito ≥1, sem extras, e exige aberto/pendente. Chamado já persistido, duas transações de estado, sem alterar conteúdo/content_revision nem final_classification. Retorna 200 `{ticket,attempt}` ou erro sanitizado; saída inválida=502, timeout simulado=504 e indisponibilidade simulada=503. Falha persistida tem contexto ticket_id/attempt_id/triage_status em error.details. GET de tentativas devolve `{items,total,limit,offset}`, ordenado started_at/id, limit 1–100 e offset≥0; 404 para chamado inexistente. Campos provider/model são null porque não existe provedor real. Não expõe mensagens nem saída bruta.
+POST triage recebe somente expected_version inteiro estrito ≥1, sem extras. A base US04 exigia aberto/pendente; US05 amplia para retry em falha e recuperação por prazo conforme seção abaixo. Chamado já persistido, duas transações de estado, sem alterar conteúdo/content_revision nem final_classification. Retorna 200 `{ticket,attempt}` ou erro sanitizado; saída inválida=502, timeout simulado=504 e indisponibilidade simulada=503. Falha persistida tem contexto ticket_id/attempt_id/triage_status em error.details. GET de tentativas devolve `{items,total,limit,offset}`, ordenado started_at/id, limit 1–100 e offset≥0; 404 para chamado inexistente. Campos provider/model são null porque não existe provedor real. Não expõe mensagens nem saída bruta.
 
-Restrição incremental explícita: repetir em sugerida/revisada/resolvido/em_analise ou falha retorna 409; versão antiga retorna 409/version_conflict. Retry após falha e recuperação por prazo do contrato planejado ficam em US05. O título exato `[SIMULADO:saida-invalida]` seleciona fixture inválida no simulador de demonstração; nenhuma chave scenario é aceita na API. Invalidação de sugestão por edição pode ser homologada agora conforme [roteiro US04](13-homologacao-us04.md).
+Atualização US05: sugerida/revisada/resolvido continuam com 409; falha permite retry e em_analise permite recuperação apenas após prazo. Versão antiga retorna 409/version_conflict. O título exato `[SIMULADO:saida-invalida]` seleciona fixture inválida no simulador de demonstração; nenhuma chave scenario é aceita na API. Invalidação de sugestão por edição pode ser homologada agora conforme [roteiro US04](13-homologacao-us04.md).
+
+
+## US05 — contrato de retry e recuperação implementado
+
+Usar o mesmo POST `/api/v1/tickets/{ticket_id}/triage`, corpo `{"expected_version":N}` obtido por GET atual; nenhum campo scenario ou endpoint de reset. Retry é escolha explícita do cliente, nunca automático.
+
+| Situação | Resultado |
+|---|---|
+| Aberto/pendente ou aberto/falha, versão atual | Nova tentativa; 200 se sugestão válida, ou erro sanitizado persistindo a falha quando o banco permite |
+| Em análise, prazo ainda válido | 409/triage_in_progress; não cria tentativa nem chama provedor |
+| Em análise, prazo vencido, versão atual | Encerra anterior como falha/execucao_expirada e cria próxima atomicamente; resposta normal da nova tentativa |
+| Versão antiga, inclusive após timeout/desconexão | 409/version_conflict; consultar GET e decidir antes de repetir |
+| Resposta antiga após recuperação | 409/version_conflict; histórico encerrado e resultado novo preservados |
+| Banco falha ao finalizar | 503/storage_unavailable; details não promete triage_status=falha. GET pode mostrar em_analise; recuperar no próximo POST após prazo |
+
+Falhas do provedor: ai_timeout (504), ai_unavailable (503), invalid_ai_response/tool_protocol_error/execution_limit (502). Tentativa recuperada tem error_code=execucao_expirada no GET de histórico. Uma falha transitória pode ser seguida de sucesso sem editar conteúdo; a fixture `[SIMULADO:saida-invalida]` é determinística e continuará falhando em cada retry enquanto esse título permanecer, como esperado. Não alterar dados/configuração só para simular recuperação em produção.
+
+Version avança na recuperação para falha, na aquisição e na finalização; content_revision é preservada. Exemplos: timeout inicial termina em version=3; retry bem-sucedido termina em 5. Interrupção após aquisição deixa version=2; recuperação e sucesso terminam em 5. Sempre usar GET e resposta efetiva. Histórico de tentativas concluídas é preservado; eventos de conteúdo não são criados por retry/timeout/no-op.

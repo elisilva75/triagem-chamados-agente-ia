@@ -33,3 +33,5 @@ O sandbox impediu a inicialização normal do PostgreSQL (token restrito) e a in
 
 
 US04 (08/11/2026): nenhuma dependência adicionada/atualizada ou configuração de versão alterada. Reutilizados os locks e fontes oficiais acima; versão da aplicação passa a 0.3.0. Sem SDK, tokenizer ou provedor externo. Pip check e execução de testes são registrados no andamento; esta atualização não representa instalação limpa ou execução Docker/CI.
+
+US05 (08/11/2026): aplicação 0.4.0, mesmos locks/versões/fontes oficiais; nenhuma dependência instalada/reconfigurada e nenhuma migração nova. Teste HTTP de interrupção usa binário nativo CPython com PYTHONPATH dos mesmos pacotes da .venv para controlar o processo exato no Windows; não é evidência de Docker/Linux/CI remota.

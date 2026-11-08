@@ -1,6 +1,6 @@
 # Arquitetura e dados
 
-**Arquitetura do MVP — implementação incremental até US04.** Fundação, cadastro, consulta, edição e agente simulado implementados; recuperação/retry, revisão e resolução permanecem futuros. Os complementos por história ao final atualizam o desenho inicial abaixo.
+**Arquitetura do MVP — implementação incremental até US05.** Fundação, cadastro, consulta, edição, agente simulado e recuperação/retry implementados; revisão e resolução permanecem futuros. Os complementos por história ao final atualizam o desenho inicial abaixo.
 
 **Atualização:** ADR01/ADR02/ADR06 aceitas para US01/US02 em 07/11/2026. Fundação e cadastro/consulta implementados; ferramentas/agente/revisão permanecem futuros. [Decisões aprovadas](08-decisoes-aprovadas.md), [ambiente/versões](09-ambiente-e-versoes.md) e [andamento](andamento.md) prevalecem sobre o status inicial acima. Migração 0001 cria Ticket e TicketEvent; tabelas/referências de tentativas e revisões serão criadas nas respectivas histórias, sem antecipar funcionalidades.
 
@@ -70,3 +70,16 @@ Serviço abre transação, bloqueia chamado, valida versão/estado, confirma ten
 ADR03 implementada nesta entrega apenas na base necessária a US04: aquisição/finalização transacionais, prazo e descarte de resultado obsoleto. **Retry em falha, recuperação de execução expirada e ensaios completos de interrupção/falha na finalização são US05**. Nesta etapa POST triage aceita somente aberto/pendente; falha tem conteúdo preservado e edição efetiva pode retornar a pendente. Não prometer retry sem edição. Falha de armazenamento na finalização responde 503 e pode deixar em_analise; não prometer recuperação automática ainda. Estados de revisão/resolução continuam em US06.
 
 Nenhuma dependência adicionada ou reconfigurada: mantidos os locks e versões/fontes oficiais de [ambiente](09-ambiente-e-versoes.md). Execução exclusivamente AI_MODE=simulated.
+
+
+## US05 — ADR09: recuperação atômica e retry explícito (08/11/2026)
+
+ADR03 implementada na parte de recuperação prevista: POST triage aceita aberto/pendente ou aberto/falha, com expected_version atual. Não existe retry automático. Chamado em_analise exige localizar sua tentativa ativa (índice parcial único). Antes de deadline_at, retorna 409/triage_in_progress sem escrita nem provedor. No instante do prazo ou depois, encerra a tentativa ativa com falha/execucao_expirada, incrementa version para a transição a falha, libera o índice com flush e adquire a tentativa seguinte na **mesma transação sob lock do chamado**. Se a inserção seguinte falhar, a recuperação inteira reverte, inclusive a tentativa anterior. Versão divergente é rejeitada antes de qualquer recuperação.
+
+Cada aquisição e finalização incrementa version; content_revision não muda. Retry de falha normalmente soma duas versões (ex.: 3→5). Recuperação de uma execução interrompida soma três mudanças lógicas (em_analise→falha→em_analise→sugerida/falha; ex.: 2→5). Clientes usam o valor retornado por GET, sem presumir incrementos. Número de tentativa é sequencial por chamado, calculado sob lock, sem duplicar ticket ou eventos de conteúdo.
+
+Finalização continua condicional à tentativa capturada ainda em_analise, mesma revisão e versão adquirida. Uma resposta tardia da tentativa encerrada não modifica a nova tentativa, a sugestão ou timestamps; recebe 409/version_conflict. No limite de 20 segundos, resultado ainda não finalizado é rejeitado com ai_timeout, sem sugestão. Relógio UTC é injetável apenas na função de serviço para testes determinísticos; não há parâmetro HTTP ou variável de produção que altere o prazo.
+
+Falha real no banco ao finalizar retorna 503/storage_unavailable sem contexto que prometa persistência de falha: rollback mantém tentativa em_analise, permitindo recuperação apenas no próximo POST com versão atual e prazo vencido. O processo não mantém conexão durante o provedor. Testes usam violação real de CHECK em banco descartável, duas requisições HTTP concorrentes, resposta tardia e interrupção real de um servidor seguida de reinício e espera real do lease de 20 s. A factory de interrupção existe apenas em tests/interrupted_server.py, nunca na aplicação de produção.
+
+Sem nova migração/dependência: reutiliza triage_attempts de 0003 e seus índices/constraints. A execução permanece exclusivamente simulada; limites de preempção de Python e metadados de tokens explicados em ADR08 continuam válidos para este simulador sem I/O. US06 não implementada. Compose e CI remota permanecem pendentes.

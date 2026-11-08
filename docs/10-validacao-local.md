@@ -1,6 +1,6 @@
 # Execução e validação local no Windows
 
-US01–US04: cadastro, consulta, edição e triagem exclusivamente simulada. Sem autenticação ou chamadas de IA externas. Usar dados fictícios e manter bind em 127.0.0.1. Executar os comandos na raiz do projeto em PowerShell. Não alterar a política de execução global; se scripts estiverem bloqueados por política da máquina, usar os comandos manuais equivalentes ou informar o impedimento.
+US01–US05: cadastro, consulta, edição, triagem exclusivamente simulada e recuperação de falhas. Sem autenticação ou chamadas de IA externas. Usar dados fictícios e manter bind em 127.0.0.1. Executar os comandos na raiz do projeto em PowerShell. Não alterar a política de execução global; se scripts estiverem bloqueados por política da máquina, usar os comandos manuais equivalentes ou informar o impedimento.
 
 ## Ambiente Python
 
@@ -102,3 +102,10 @@ Workflow em `.github/workflows/ci.yml`: Python 3.12, PostgreSQL 16, instalação
 Reutilizar `.local/pgdata` e banco demo existentes; não executar initdb/createdb novamente, não limpar dados. Aplicar apenas `alembic upgrade head` (0003 aditiva) e reiniciar somente a API identificada deste projeto, mantendo DATABASE_URL do demo, AI_MODE=simulated e bind 127.0.0.1:8000. Confirmar OpenAPI info.version=0.3.0 e rotas triage/triage-attempts. O health deve ser complementado por GET real do chamado para conferir o destino persistido. A migração não acontece por requisição.
 
 Homologação curta em [13-homologacao-us04.md](13-homologacao-us04.md); não repetir E01–E04 já aceitos. Retry e recuperação de tentativas expiradas são US05; não prometer que a API já recupera em_analise após interrupção. Docker Compose e CI remota permanecem pendentes.
+
+
+## Atualização US05 — recuperação disponível, demonstração opcional
+
+Sem nova migração, manter esquema 0003 e banco existente. Recarregar somente a API identificada deste projeto com a mesma DATABASE_URL demo, AI_MODE=simulated e bind 127.0.0.1:8000; OpenAPI info.version=0.4.0. Não criar banco novamente nem repetir POST/PATCH para validar a atualização. GET do chamado/histórico complementa health. Critérios de US05 e M02/no-op foram exercitados por automação em bancos isolados; não pedir repetição manual.
+
+Para uso normal após falha, consultar GET para obter versão e decidir se solicita novamente POST triage. Em análise ainda no prazo: 409/triage_in_progress. Após prazo, POST com versão atual encerra anterior como execucao_expirada e adquire a seguinte atomicamente. Não há retry automático; não reiniciar nem limpar banco para destravar tentativa. Detalhes e limites em [validação US05](14-validacao-us05.md). US06 futura; Compose e CI remota pendentes.
