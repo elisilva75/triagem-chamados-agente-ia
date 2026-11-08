@@ -10,7 +10,7 @@ Arquitetura: monólito modular FastAPI/Pydantic → serviços de aplicação e r
 
 ## Obter o projeto
 
-URL planejada: [elisilva75/triagem-chamados-agente-ia](https://github.com/elisilva75/triagem-chamados-agente-ia), branch principal **main**. A publicação ainda não foi realizada; os comandos abaixo serão utilizáveis após ela. Para contribuir, faça fork no GitHub e clone a URL do seu fork. Para apenas executar, clone o original:
+Repositório: [elisilva75/triagem-chamados-agente-ia](https://github.com/elisilva75/triagem-chamados-agente-ia), branch principal **main**. Para contribuir, faça fork no GitHub e clone a URL do seu fork. Para apenas executar, clone o original:
 
 ```powershell
 git clone "https://github.com/elisilva75/triagem-chamados-agente-ia.git"
@@ -191,7 +191,7 @@ Windows 11 build 26300, PowerShell, PostgreSQL nativo. Locks completos: requirem
 
 Uso exclusivo em **loopback, com dados fictícios e sem autenticação**. Não expor publicamente nem usar com dados de empregadores. Autor da revisão é declarado, não autenticado. Não há reconstrução integral de textos antigos, auditoria legal, worker distribuído ou evidência de qualidade de modelo real.
 
-Licença [MIT](LICENSE), copyright 2026 Eliana Gomes da Silva, autorizada pela autora. Conta, nome e branch principal definidos; visibilidade e conferências finais de autenticação/metadados para publicação estão na revisão vinculada abaixo. Docker/Compose e CI remota continuam pendências explícitas. Sem publicação/deploy/chamadas pagas nesta entrega.
+Licença [MIT](LICENSE), copyright 2026 Eliana Gomes da Silva. Publicação pública de main autorizada pela autora, com endereço GitHub noreply confirmado nos commits. Auditoria e resultado da publicação/CI na revisão vinculada abaixo e no andamento. Docker Compose permanece pendente de validação. Sem deploy ou chamadas pagas.
 
 Desenvolvimento com assistência de IA (Codex) em implementação, revisão, testes e documentação, sob decisões de produto e revisão de Eliana. Isso é distinto do simulador da aplicação.
 

@@ -1,5 +1,21 @@
 # Andamento e continuidade
 
+## 08/11/2026 — Privacidade e publicação de main autorizadas
+
+Eliana confirmou público, conta elisilva75/nome triagem-chamados-agente-ia/main/MIT e forneceu o noreply exato exibido nas configurações da conta. Autorizou reescrita local de e-mail de author/committer, preservando nomes/mensagens/ordem/conteúdo, e publicação somente de main, sem force push/outras branches/tags/backups. As autorizações mais antigas de não publicar foram substituídas por essa autorização expressa. Sem deploy ou chamadas pagas; AI_MODE=simulated e Docker Compose pendente preservados.
+
+Executado .local/rewrite_main_email.py: 9 commits reescritos com noreply confirmado, preservando árvores, mensagens, nomes, datas e ordem dos pais, sem rebase de conteúdo. Backup bundle em .local ignorado, sem referência de backup no refspec a publicar; outras branches antigas mantidas locais. O endereço pessoal não foi impresso nem inserido na documentação. Configuração local de novos commits atualizada para noreply; push.followTags=false. Auditoria própria .local/audit_main_privacy.py confere ausência do e-mail anterior em metadados, mensagens e blobs históricos/arquivos de main e preservação dos atributos exigidos. Alterações documentais pendentes da autenticação foram preservadas e incluídas na preparação do commit.
+
+Conta autenticada elisilva75 e ausência do repositório (GET autenticado 404) reconferidas antes da criação. Criação, push e CI serão registrados conforme o resultado efetivo; a autorização/preparação não equivalem a execução concluída. Histórico abaixo mantém evidências anteriores e hashes locais pré-reescrita, sem expor e-mail pessoal.
+
+## 08/11/2026 — Acesso GitHub restabelecido, sem publicação
+
+Eliana autorizou corrigir o acesso por fluxo oficial, confirmar conta e consultar existência do repositório, sem publicar/reescrever histórico, aguardando visibilidade/e-mail. Disponível Git Credential Manager 2.5.1; GitHub CLI ausente. Executado `git credential-manager github login --username elisilva75 --browser --force` fora da restrição do sandbox para acessar navegador/gerenciador de credenciais do usuário. Eliana concluiu a autorização pelo navegador e informou sucesso; processo terminou com saída 0. Nenhuma senha/token solicitado na conversa ou impresso, nenhum código de dispositivo usado.
+
+Verificação técnica posterior em .local/check_github_ready.py: GET autenticado /user HTTP 200, login elisilva75, conta esperada confirmada. GET autenticado /repos/elisilva75/triagem-chamados-agente-ia HTTP 404; consulta pública também 404. Repositório não existe para a conta autenticada no momento da consulta; não é reserva do nome e a existência deve ser reconferida antes de futura criação. Token utilizado somente em memória no verificador; credencial persistida pelo fluxo oficial do GCM, sem inclusão em arquivos do projeto. Evidência sanitizada local ignorada pelo Git.
+
+Atualizado documento 17 com resultado e diagnóstico anterior preservado como histórico. Sem criar origin/repositório remoto, push, publicação, novo commit ou reescrita; main permanece em c2dd4b7. Aguardar definições de visibilidade e identidade pública dos commits. Demo e código não alterados; nenhuma suíte repetida nesta operação de autenticação/documentação. Modo simulado e pendências de Docker Compose/CI remota preservados. Registros desta etapa ficam sem novo commit.
+
 ## 08/11/2026 — Licença, URL e main preparadas por autorização de Eliana
 
 Autorizado adicionar MIT com copyright 2026 Eliana Gomes da Silva, usar conta elisilva75/nome triagem-chamados-agente-ia/main, revisar e commitar alterações finais pertinentes, sem publicar. Preservadas todas as alterações documentais da revisão anterior. Criada main a partir da base revisada 83dd970, mantendo chore/mvp-readiness e demais branches; sem rebase/amend/reescrita. LICENSE adicionado com texto MIT padrão, READMEs PT/EN atualizados para URL planejada e status de publicação ainda não realizada. Modo simulado, US08 adiada, Compose e CI remota pendentes mantidos explícitos.

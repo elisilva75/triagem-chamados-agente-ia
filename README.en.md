@@ -10,7 +10,7 @@ Architecture: modular monolith with FastAPI/Pydantic → application services an
 
 ## Get the project
 
-Planned URL: [elisilva75/triagem-chamados-agente-ia](https://github.com/elisilva75/triagem-chamados-agente-ia), default branch **main**. Publication has not taken place; the commands below will work after it does. To contribute, fork on GitHub and clone your fork. To run only, clone the original:
+Repository: [elisilva75/triagem-chamados-agente-ia](https://github.com/elisilva75/triagem-chamados-agente-ia), default branch **main**. To contribute, fork on GitHub and clone your fork. To run only, clone the original:
 
 ```powershell
 git clone "https://github.com/elisilva75/triagem-chamados-agente-ia.git"
@@ -191,7 +191,7 @@ Latest full suite: **2026-11-08**, exact command: venv Python with `scripts/chec
 
 **Loopback only, fictitious data, no authentication.** Do not expose publicly or use employer data. Reviewer identity is declared, not authenticated. No complete historical text reconstruction, legal audit guarantee, distributed worker or real-model quality evidence.
 
-Licensed under [MIT](LICENSE), copyright 2026 Eliana Gomes da Silva, as authorized by the author. Account, repository name and default branch are defined; visibility and final authentication/commit-metadata checks are documented in the review linked below. Docker/Compose and remote CI remain explicit pending validations. No publication, deployment or paid call has been performed.
+Licensed under [MIT](LICENSE), copyright 2026 Eliana Gomes da Silva. Public publication of main was authorized by the author, with her confirmed GitHub noreply address in commit metadata. Publication/CI results and the audit are documented in the review linked below and delivery log. Docker Compose validation remains pending. No deployment or paid call has been performed.
 
 AI assistance (Codex) supported implementation, review, testing and documentation under Eliana's product decisions and review. This is distinct from the application's simulator.
 

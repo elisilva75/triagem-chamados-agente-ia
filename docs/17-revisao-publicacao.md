@@ -1,4 +1,14 @@
-# Revisão para publicação — sem publicar
+# Publicação e revisão do repositório
+
+## Autorização e privacidade — 08/11/2026
+
+Eliana confirmou repositório público elisilva75/triagem-chamados-agente-ia, branch main, licença MIT e uso de seu noreply GitHub exato, copiado por ela das configurações da conta. Autorizou reescrever somente o histórico destinado à publicação e publicar somente main, sem force push, branches adicionais, tags ou backups. Visibilidade e identidade não são mais decisões pendentes. Integração real US08 permanece adiada; Docker Compose ainda não validado.
+
+Reescritos os 9 commits de main: somente endereço nos campos author/committer e hashes de pais derivados foram substituídos. Preservados nomes, mensagens byte a byte, ordem dos pais/commits, datas e árvores de conteúdo. Configuração local de novos commits usa o noreply confirmado. Backup anterior em bundle ignorado dentro de .local; branches antigas e reflogs permanecem exclusivamente locais, fora do refspec a enviar. Não foram criadas referências refs/original. Auditoria específica compara metadados/árvores/mensagens e procura o endereço anterior nos commits e blobs de main e arquivos rastreados, sem imprimir o valor.
+
+Conta elisilva75 reconfirmada por API autenticada; repositório retornou 404 na consulta anterior à criação autorizada. Próximos registros de publicação e CI devem refletir operações realmente executadas, sem inferir êxito da preparação. As seções abaixo preservam o histórico da revisão antes dessa autorização; referências a decisões pendentes ou hashes antigos pertencem àquela etapa e não alteram o escopo atual.
+
+## Histórico da preparação anterior à autorização
 
 Revisão documental em 08/11/2026. Autora do portfólio: **Eliana Gomes da Silva**. Branch principal preparada: `main`, criada a partir de `chore/mvp-readiness`, base revisada `83dd970`. Destino planejado: [elisilva75/triagem-chamados-agente-ia](https://github.com/elisilva75/triagem-chamados-agente-ia). Nenhum remoto configurado, push, PR remoto, deploy ou chamada paga. Licença [MIT](../LICENSE), copyright 2026 Eliana Gomes da Silva, adicionada por autorização expressa.
 
@@ -21,6 +31,10 @@ Tópicos sugeridos: `python`, `fastapi`, `postgresql`, `sqlalchemy`, `alembic`, 
 Nome escolhido pela autora: `triagem-chamados-agente-ia`, conta `elisilva75`, branch principal `main`. READMEs usam a URL planejada, deixando claro que a publicação ainda não ocorreu.
 
 ## Conferência de conta e nome — somente leitura
+
+**Atualização após login autorizado em 08/11/2026:** Git Credential Manager 2.5.1, fluxo oficial de navegador com `git credential-manager github login --username elisilva75 --browser --force`, concluído com saída 0 e autorização confirmada por Eliana. Verificação posterior: GET autenticado /user **200**, login **elisilva75**; GET autenticado /repos/elisilva75/triagem-chamados-agente-ia **404**, assim como a consulta pública. Repositório não existe para a conta autenticada neste momento; nome não reservado. Credencial gerenciada pelo GCM, sem token impresso ou salvo nos arquivos do projeto. Nenhum remoto/repositório criado, push, publicação ou alteração de commits. Aguardar definições de visibilidade e e-mail; repetir a consulta de existência antes de futura criação.
+
+O parágrafo abaixo preserva o diagnóstico anterior, agora resolvido pelo login:
 
 GitHub CLI não foi encontrado no PATH; não há ferramenta GitHub conectada disponível nesta sessão. Conferido o gerenciador de credenciais Git sem imprimir tokens. Sob o sandbox a credencial não estava acessível; na execução autorizada fora dessa restrição foi encontrada, mas GET autenticado /user retornou **401**, sem identidade confirmada. GET autenticado do repositório também retornou 401. A conexão informada no VS Code não foi presumida válida para o processo Git.
 
@@ -57,7 +71,7 @@ Verificações após licença/URL: 16 blocos PowerShell dos READMEs analisados p
 ## Decisões para Eliana antes de publicar
 
 - Visibilidade do repositório. Conta, nome, URL planejada, licença MIT e branch main já definidos/autorizados.
-- Restabelecer autenticação verificável como elisilva75 no cliente utilizado e conferir o nome antes de criar qualquer remoto. Não considerar 404 público uma reserva do nome.
+- Autenticação como elisilva75 confirmada após login; consulta autenticada não encontrou o repositório. Repetir a consulta antes de criar qualquer remoto, pois o nome não está reservado.
 - Confirmar identidade pública dos commits entre as opções descritas acima; alterar metadados existentes exige decisão específica. Escopo de apenas main e seus ancestrais revisados já definido.
 - Momento de publicar: Docker/Compose (US01-CA1 e persistência por reinício) e CI remota continuam pendentes. É possível revisar uma publicação com essas limitações declaradas, mas não anunciar a entrega final integralmente validada. US08/modelo real segue adiada, sem bloqueio para o MVP simulado.
 - Autorização explícita futura para criar/conectar repositório e enviar conteúdo. Esta etapa apenas prepara o material; não executa publicação.
