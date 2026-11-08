@@ -45,8 +45,17 @@ def test_us04_ca1_real_suggestion_noop_edit_and_immutable_history(client):
     noop = client.patch(
         path, json={"expected_version": 3, "title": "  " + original["title"] + "  "}
     )
+    assert noop.status_code == 200
     assert noop.json() == ticket
+    assert client.get(path).json() == ticket
+    with client.app.state.sessions() as session:
+        events_after_noop = session.scalars(
+            select(TicketEvent).where(TicketEvent.ticket_id == UUID(ticket["id"]))
+        ).all()
+        assert len(events_after_noop) == 1
+        assert events_after_noop[0].type == "criado"
     history_before = client.get(path + "/triage-attempts").json()
+    assert history_before["items"] == [attempt]
     edited = client.patch(
         path,
         json={
@@ -117,13 +126,26 @@ def test_us04_ca2_failures_persist_without_publishing(client, replies, code, sta
 
 
 def test_us04_public_simulation_failure_marker(client):
-    path, _ = create(client, "[SIMULADO:saida-invalida]")
+    path, original = create(client, "[SIMULADO:saida-invalida]")
     response = client.post(path + "/triage", json={"expected_version": 1})
     assert response.status_code == 502
-    assert (
-        client.get(path + "/triage-attempts").json()["items"][0]["error_code"]
-        == "invalid_ai_response"
-    )
+    assert response.json()["error"]["code"] == "invalid_ai_response"
+    current = client.get(path).json()
+    for field in ("title", "description", "created_at", "content_revision", "status"):
+        assert current[field] == original[field]
+    assert current["version"] == 3 and current["triage_status"] == "falha"
+    assert current["suggestion"] is current["final_classification"] is None
+    history = client.get(path + "/triage-attempts").json()
+    assert history["total"] == 1
+    attempt = history["items"][0]
+    assert attempt["status"] == "falha" and attempt["error_code"] == "invalid_ai_response"
+    assert attempt["content_revision"] == 1 and attempt["attempt_number"] == 1
+    assert attempt["suggestion"] is None
+    with client.app.state.sessions() as session:
+        events = session.scalars(
+            select(TicketEvent).where(TicketEvent.ticket_id == UUID(original["id"]))
+        ).all()
+        assert len(events) == 1 and events[0].type == "criado"
 
 
 def test_us04_attempt_committed_and_no_connection_held_during_provider(client):

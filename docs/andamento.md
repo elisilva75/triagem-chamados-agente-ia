@@ -1,5 +1,40 @@
 # Andamento e continuidade
 
+## 08/11/2026 — M02/no-op validados por automação; continuidade US05 autorizada
+
+Eliana alterou explicitamente a estratégia de aceite: participação em decisões de produto e demonstrações curtas opcionais; não exigir repetição manual de verificações automatizadas. Autorizou iniciar US05 se critérios independentes atendidos. Não atribuir testes do agente a homologação manual da usuária. US06 continua fora desta implementação; Docker Compose/CI permanecem pendentes.
+
+Revisados e **reaproveitados** os testes existentes `test_us04_public_simulation_failure_marker`, `test_us04_ca1_real_suggestion_noop_edit_and_immutable_history` e `test_us03_ca1_archive_classification_and_preserve_history`. Acrescentadas somente asserções faltantes ao teste do marcador (502/código, conteúdo, estado, versão/revisão 3/1, ausência de classificação inválida, tentativa falha e só evento criado) e ao no-op (200, GET integral idêntico incluindo timestamps/sugestão/versões, contagem de eventos imediatamente após no-op=1 e tentativa intacta), sem duplicar cenários.
+
+Comando executado com TEST_DATABASE_URL do cluster local portfolio_test: `.\.venv\Scripts\python.exe -m pytest tests/api/test_triage.py::test_us04_public_simulation_failure_marker tests/api/test_triage.py::test_us04_ca1_real_suggestion_noop_edit_and_immutable_history tests/integration/test_editing.py::test_us03_ca1_archive_classification_and_preserve_history -q --junitxml=reports/us04-m02-noop-technical.xml`. **3 passed, 1 warning, 9,30 s; sem skips/falhas.** Cada caso usou banco exclusivo descartável, nenhum POST/PATCH no demo. Snapshot somente leitura do demo salvo em `.local/demo-us05-before.json`: 1 chamado, 3 eventos e 1 tentativa. Comparar novamente ao fim de US05.
+
+M02 e timestamps do no-op estão **validados tecnicamente por automação**, sem homologação manual presumida e sem nova tarefa para Eliana no Swagger. Isso não reconstrói o timestamp histórico intermediário de seu no-op já seguido de edição; limitações históricas mantidas sem bloquear critério funcional automatizado. US04-CA1–CA4 independentes verificados (regressão prévia 124 testes e foco atual); pode avançar a US05. US03 mantém lacunas de fluxo com classificação final/resolvido dependentes de US06; fixtures existentes cobrem as regras, futura validação integrada automatizada deve usar as rotas de US06 quando existirem. Não iniciar US06 nesta autorização.
+
+
+## 08/11/2026 — M01a–M01c informados; edição e histórico conferidos
+
+Homologação manual informada por Eliana, registrada sem duplicação: M01a POST triage expected_version=2 retornou 200 e GET confirmou simulated/defeito/media, sugerida, version=4/content_revision=2. M01b PATCH com título idêntico e espaços retornou 200 preservando sugestão e versões 4/2. M01c PATCH de descrição expected_version=4 retornou 200, version=5/content_revision=3, pendente, suggestion/final_classification=null. O agente não observou visualmente nem reexecutou essas ações.
+
+Verificação técnica somente leitura via HTTPX: GET do chamado e de triage-attempts retornaram 200. Descrição persistida: “No ambiente fictício, o erro ao salvar o cadastro afeta todos os usuários e começou nesta manhã.” Texto obtido pelo agente, não atribuído ao relato integral de Eliana. PostgreSQL via psycopg, `SET TRANSACTION READ ONLY; SHOW transaction_read_only` (on), SELECT de tickets/triage_attempts/ticket_events, confirmação transacional sem escrita: **saída 0**. Chamado ad903cac-a750-48d3-b205-91da97d7adee version=5/revisão=3, aberto/pendente, classificações atuais nulas. Uma tentativa, b7b11f7f-1565-4ac4-b39a-6bf77a3669cf, sucesso/simulated, revisão 2, defeito/media, 3 chamadas de modelo/2 ferramentas, sugestão preservada.
+
+**Exatamente três eventos:** criado/revisão 1, editado/revisão 2, editado/revisão 3. Os dois primeiros foram comparados integralmente com `.local/demo-us04-preservation.json` e estão idênticos, incluindo timestamps e snapshot antigo. O novo snapshot tem content_revision=2, final_classification=null e suggestion **integralmente igual** à tentativa anterior. Não há evento adicional para o no-op no estado observado. Nenhum dado alterado ou processo reconfigurado pelo agente; nenhuma nova suíte de aplicação executada.
+
+Timestamps conferidos (UTC): created_at do chamado 2026-11-07T21:23:24.789820Z; updated_at atual 2026-11-08T15:35:04.358424Z; novo evento 2026-11-08T15:35:04.357654Z. Finalização da tentativa 2026-11-08T15:31:17.781295Z, valor que a implementação usa para updated_at da finalização. **Não há captura persistida de resposta imediatamente antes/depois do no-op**: após a edição seguinte, o timestamp intermediário não pode ser comprovado retrospectivamente pelo estado atual. Eliana não informou esse campo no relato do no-op; não registrá-lo como homologado nem inferir igualdade a partir de finished_at. A preservação de timestamp no no-op tem evidência automatizada anterior; não repetir o cenário para criar evidência histórica artificial.
+
+Próximo: M02 saída simulada inválida. **Somente orientar criação de chamado fictício separado**, título exato `[SIMULADO:saida-invalida]`, conforme roteiro; preservar chamado existente. AI_MODE continua simulated: seleção por título é local à requisição, não muda configuração global/arquivo/serviço e não requer restauração posterior. Chamados com títulos comuns continuam no roteiro normal; manter o registro de falha como evidência, sem apagar/renomear. Aguardar ID/resultado da criação; consultar GET para obter versão antes de orientar POST de triagem do novo chamado. M02 não executado pelo agente nem homologado.
+
+US03: no-op com sugestão e invalidação/preservação de sugestão agora informados manualmente e conferidos tecnicamente no alcance descrito; classificação final/resolvido continuam dependentes de US06. Não encerrar a história nem presumir os demais campos/snapshots não homologados. US04 mantém M02 pendente; US05 não iniciada. Docker Compose e CI no GitHub pendentes, US01 parcialmente validada. Sem chamadas pagas, publicação ou deploy.
+
+
+## 08/11/2026 — Início guiado de US04: somente geração de sugestão
+
+A pedido de Eliana, conduzir um cenário por vez e aguardar seu relato antes do seguinte. Verificação técnica do agente, somente leitura via HTTPX/TCP: GET `/api/v1/tickets/ad903cac-a750-48d3-b205-91da97d7adee` retornou 200, version=2/content_revision=2, aberto/pendente, suggestion/final_classification=null. GET `/openapi.json` retornou 200, API 0.3.0 e POST triage disponível. Nenhum POST/PATCH executado, nenhum dado alterado e nenhuma nova suíte executada.
+
+Orientação atual: POST `/api/v1/tickets/ad903cac-a750-48d3-b205-91da97d7adee/triage`, corpo completo `{"expected_version":2}`. Esperado 200, ticket aberto/sugerida, version=4/content_revision=2, sugestão simulated/defeito/media, ausentes impacto e inicio_ocorrencia para o texto atual, classificação final nula; tentativa sucesso, 3 chamadas de modelo e 2 ferramentas. **Geração ainda aguarda execução/relato de Eliana; não homologada.** Próximos passos separados: no-op com sugestão, edição que invalida e preserva histórico, saída simulada inválida. Consultar a versão novamente antes de orientar cada operação com expected_version. Não repetir limites/campos já conferidos.
+
+US03 mantém pendências específicas; classificação final/resolução dependem de US06. US04 aguarda homologação; US05 não iniciada. Docker Compose e CI remota pendentes; US01 parcialmente validada. Somente modo simulado, sem custos, publicação ou deploy.
+
+
 ## 08/11/2026 — US04 simulada implementada; aguardando homologação de Eliana
 
 ### Autorização e escopo

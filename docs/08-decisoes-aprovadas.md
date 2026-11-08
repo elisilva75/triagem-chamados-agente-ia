@@ -27,3 +27,8 @@ Atualização: Eliana relatou homologação manual de cadastro, consulta, listag
 ## Autorização de continuidade — 08/11/2026
 
 Eliana aceitou os resultados manuais E01–E04 de US03 e autorizou explicitamente iniciar **US04 conforme o backlog aprovado, exclusivamente em modo simulado**. Não repetir os cenários aceitos. US03 permanece com as pendências específicas de homologação de classificação/snapshots e estados dependentes dos fluxos de US04/US06. A autorização permite implementar/testar US04 e preparar homologação curta, incluindo invalidação de sugestão após edição. Não autoriza iniciar US05/US06, chamadas pagas, publicação ou deploy. Docker Compose e CI remota continuam pendentes; US01 parcialmente validada. Esta autorização atualiza o limite das entregas anteriores, sem converter pendências em aceite.
+
+
+## Continuidade automatizada para US05 — 08/11/2026
+
+Eliana autorizou executar M02/no-op por automação isolada e, atendidos os critérios independentes, implementar/testar US05 conforme backlog. M02 não exige sua execução no Swagger; não converter testes em homologação manual nem solicitar repetição de cobertura existente. Demonstrações curtas são opcionais; decisões de produto continuam com Eliana. Critérios independentes verificados por testes reaproveitados (3 passed), permitindo US05. US06 continua dependência futura para classificação final/resolução; Docker Compose e CI remota pendentes. Sem chamadas pagas, publicação ou deploy. Esta instrução substitui a exigência anterior de aguardar homologação manual de US04 para avançar.
