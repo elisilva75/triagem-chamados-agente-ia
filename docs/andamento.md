@@ -1,5 +1,34 @@
 # Andamento e continuidade
 
+## 08/11/2026 — Licença, URL e main preparadas por autorização de Eliana
+
+Autorizado adicionar MIT com copyright 2026 Eliana Gomes da Silva, usar conta elisilva75/nome triagem-chamados-agente-ia/main, revisar e commitar alterações finais pertinentes, sem publicar. Preservadas todas as alterações documentais da revisão anterior. Criada main a partir da base revisada 83dd970, mantendo chore/mvp-readiness e demais branches; sem rebase/amend/reescrita. LICENSE adicionado com texto MIT padrão, READMEs PT/EN atualizados para URL planejada e status de publicação ainda não realizada. Modo simulado, US08 adiada, Compose e CI remota pendentes mantidos explícitos.
+
+Verificação GitHub somente leitura por .local/check_github_ready.py, tokens apenas em memória e nunca impressos/salvos: GitHub CLI ausente no PATH. Gerenciador Git sem credencial acessível sob sandbox; execução autorizada fora da restrição encontrou credencial, mas GET autenticado /user retornou 401 e conta não foi confirmada. Consulta pública ao repositório planejado retornou 404; consulta autenticada retornou 401. Não declarar nome disponível na conta autenticada. A conexão de VS Code informada pela autora não pôde ser confirmada pelo processo Git. Nenhum origin/repositório remoto criado; antes disso, confirmar autenticação como elisilva75 e repetir disponibilidade do nome. Não houve push, publicação, deploy ou chamada paga.
+
+E-mail: um único endereço no histórico revisado, igual à configuração local e não GitHub noreply. Potencialmente pessoal, valores não reproduzidos. Commit final autorizado usa a identidade existente, sem inventar endereço ou reescrever commits. Opções em [revisão de publicação](17-revisao-publicacao.md): consentir em manter identidade; confirmar endereço público/noreply real e autorizar reescrita; ou autorizar outro histórico separado de publicação. Nenhuma reescrita foi executada. Publicação futura restrita a main e ancestrais revisados; nunca --all/--mirror. Branch antiga com workspace permanece fora desse histórico.
+
+Mudanças são documentais/licença/ignore/comentários; sem alteração funcional ou versões de dependências. Mantida última evidência funcional de 177 testes aprovados, sem repetir suíte completa ou cenários manuais. Conferência final: 87 links locais em 21 arquivos Markdown, 8 exemplos JSON aceitos pelos schemas, 16 blocos PowerShell sem erros de sintaxe, git diff --check aprovado e auditoria de arquivos/histórico sem padrão de segredo encontrado. Demo, arquivos locais e branches antigas preservados. Ainda pendem autenticação verificável/disponibilidade do nome, decisão de identidade pública e visibilidade, autorização futura de publicação e validações próprias de Docker Compose/CI remota.
+
+## 08/11/2026 — Revisão final documental para publicação futura
+
+Pedido de Eliana: preparar revisão do repositório, sem publicar. Lidos README/andamento e preservadas alterações existentes. Branch mantida `chore/mvp-readiness`, HEAD `83dd970`, nenhum remoto configurado. Alterações desta revisão sem commit/staging enquanto Eliana confirma a identidade pública dos commits; histórico não reescrito.
+
+READMEs PT/EN reorganizados para leitores sem contexto: objetivo/funcionalidades/arquitetura, simulador versus US08 adiada, fork/clone com marcadores de URL, pré-requisitos com fontes oficiais, .env a partir do exemplo, execução nativa, parada/reinício preservando dados, Compose com comandos explicitamente não validados, Swagger completo, testes isolados, diagnóstico de portas/banco/migrações e limites de loopback sem autenticação. Versões efetivas e última validação de 177 testes mantidas como evidência anterior, sem nova execução da suíte. Comentários de .env.example esclarecem o destino Compose versus nativo; .gitignore agora protege workspace pessoal.
+
+[Revisão de publicação](17-revisao-publicacao.md) contém descrição curta PT/EN, tópicos sugeridos, licença pendente (nenhuma encontrada/atribuída), escopo Git recomendado e decisões de URL/visibilidade/branch/identidade. Docker/Compose e CI remota continuam pendentes; US08 adiada. Não houve publicação, deploy, instalação nova, chamada paga ou alteração do demo.
+
+Verificações executadas nesta etapa documental:
+
+- Metadados das versões instaladas conferidos sem atualização; PowerShell 5.1.26100.9818 e versões Python/pacotes registradas em ambiente/READMEs.
+- `.local/check_publication_docs.py`: links locais Markdown conferidos e 8 exemplos JSON dos dois READMEs validados pelos schemas reais; não é execução de requisições HTTP ou homologação manual. Parser PowerShell analisou 16 blocos, zero erros de sintaxe. Clone/instaladores/Compose e novos comandos operacionais não executados; o caminho nativo e o fluxo de produto têm evidência anterior, não nova certificação.
+- `.local/audit_publication.py`: 8 commits ancestrais da branch preparada, 9 commits ao incluir todas as branches locais, 180 blobs únicos e 89 caminhos históricos da base. Sem padrões de segredo encontrados; URLs com credenciais só nos exemplos fictícios permitidos. Sem artefatos locais no histórico da branch atual. A auditoria por padrões não é garantia universal.
+- Achado em outra branch: `feat/foundation-tickets`, commit `c3d3c95`, contém workspace com pasta relativa, sem caminho absoluto/configurações/segredo encontrado. Não é ancestral da branch preparada. Recomenda-se publicar somente a branch revisada, sem --all/--mirror; arquivo e branch antigos preservados, sem reescrita de histórico.
+- Identidade Git de autor/committer não usa GitHub noreply. Valores não impressos; confirmar identidade pública antes de novos commits/publicação e decidir eventual tratamento de metadados existentes. Nenhuma alteração automática de autoria.
+- `git check-ignore` confirmou .env, venv, .local, reports e workspace como ignorados. Diff sem erros em git diff --check; 83 links locais em 21 arquivos Markdown aprovados. Licença não aplicada. Apenas documentação/comentários e proteção de arquivo local alterados; comentários iniciais dos locks agora distinguem Windows validado de Linux/CI pendentes, sem mudar dependências. Suíte completa não repetida.
+
+Decisões pendentes da autora: conta/nome/URL, visibilidade e branch principal, licença, identidade pública Git e autorização futura de publicação apenas do escopo revisado. Caso opte por mostrar o MVP antes de concluir infraestrutura, declarar Compose/CI remota pendentes; não apresentar entrega final totalmente validada. Descrição/tópicos estão preparados no documento 17, sem criar o repositório remoto.
+
 ## 08/11/2026 — US01, US07 e US09: preparação local do MVP simulado
 
 ### Autorização e resultado atual

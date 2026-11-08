@@ -19,5 +19,6 @@ build/
 .idea/
 .DS_Store
 Thumbs.db
+*.code-workspace
 .local/
 reports/
