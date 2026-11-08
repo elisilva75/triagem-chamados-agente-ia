@@ -91,7 +91,7 @@ Ao atualizar código, encerre a API, mantenha o cluster ativo, execute `alembic 
 
 ## Docker Compose — alternativa ainda não validada
 
-Docker não estava disponível no ambiente da última validação. Build, início e persistência após reinício de containers **não foram executados**. Instale/inicie [Docker Desktop com mecanismo Linux e Compose](https://docs.docker.com/desktop/setup/install/windows-install/) conforme os requisitos oficiais. Não inferir compatibilidade de containers/Linux pelo ensaio nativo.
+Docker não estava disponível no ambiente local. Build, início e persistência por reinício do **Compose não foram executados**. Instale/inicie [Docker Desktop com mecanismo Linux e Compose](https://docs.docker.com/desktop/setup/install/windows-install/) conforme os requisitos oficiais. A CI verifica a aplicação no runner Linux com PostgreSQL de serviço; isso não valida a imagem da API nem o fluxo Compose.
 
 Portas padrão: **127.0.0.1:5432** (banco) e **127.0.0.1:8000** (API). Antes de usar, encerre sua API nativa ou siga o [guia de projeto isolado/portas alternativas](docs/10-validacao-local.md). Não encerre outros serviços para liberar portas. O Compose define sua própria DATABASE_URL interna para db:5432 e credenciais fictícias no YAML; não usa o banco nativo nem o DATABASE_URL do .env.
 
@@ -156,7 +156,7 @@ $env:APP_ENV = 'test'
 
 Pipeline: pip check, Ruff check/format, unitários, integração PostgreSQL/API dentro do processo e HTTP/TCP contra Uvicorn separado. Fixtures criam/migram/removem somente bancos únicos portfolio_test_<uuid>; não limpam o banco administrativo recebido. Não usar DATABASE_URL do demo como TEST_DATABASE_URL. URL administrativa deve ser local com prefixo portfolio_test e permissão de criar bancos.
 
-Interrompe na primeira falha e rejeita suites vazias/com skips obrigatórios. JUnit em reports/, ignorado pelo Git. Para teste parcial: `.\.venv\Scripts\python.exe -m pytest tests/unit -q`. Fora do pipeline, ausência de TEST_DATABASE_URL causa skips de PostgreSQL, não aprovação. Actions usa esse mesmo runner em Ubuntu com PostgreSQL de serviço, sem chave paga; **CI remota ainda não executada**.
+Interrompe na primeira falha e rejeita suites vazias/com skips obrigatórios. JUnit em reports/, ignorado pelo Git. Para teste parcial: `.\.venv\Scripts\python.exe -m pytest tests/unit -q`. Fora do pipeline, ausência de TEST_DATABASE_URL causa skips de PostgreSQL, não aprovação. Actions usa esse mesmo runner em Ubuntu com PostgreSQL de serviço, sem chave paga; [CI remota aprovada: 177 testes](https://github.com/elisilva75/triagem-chamados-agente-ia/actions/runs/42507831040).
 
 ## Problemas comuns
 
@@ -183,9 +183,11 @@ Interrompe na primeira falha e rejeita suites vazias/com skips obrigatórios. JU
 | SQLAlchemy / Alembic / psycopg | 2.0.57 / 1.20.1 / 3.3.8 |
 | pytest / HTTPX / Ruff | 9.2.0 / 0.28.1 / 0.17.4 |
 
-Windows 11 build 26300, PowerShell, PostgreSQL nativo. Locks completos: requirements.lock e requirements-dev.lock. Conjunto efetivamente utilizado, **sem prometer outros patches/SOs**; imagens python:3.12-slim e postgres:16 ainda sem build/patch efetivo aferido. [Fontes/compatibilidade](docs/09-ambiente-e-versoes.md).
+Windows 11 build 26300, PowerShell, PostgreSQL nativo. Locks completos: requirements.lock e requirements-dev.lock. Conjunto efetivamente utilizado, **sem prometer outros patches/SOs**. Imagem da API python:3.12-slim ainda sem build validado; o serviço postgres:16 da CI executou PostgreSQL 16.15 conforme os logs. [Fontes/compatibilidade](docs/09-ambiente-e-versoes.md).
 
-Última suíte executada em **08/11/2026**, comando exato: Python da venv com `scripts/check_quality.py` e variáveis de teste acima. **177 passed**, sem falha/erro/skip (98 unitários, 77 integração/API, 2 HTTP real). pip check e Ruff aprovados. Aviso conhecido: depreciação TestClient/HTTPX, mantido visível. Instalação em venv nova/exportação limpa, roteiro de falha/retry/revisão/resolução e reinício nativo da API aprovados em banco exclusivo; demo integralmente preservado. Não foi máquina nova nem validação Docker/GitHub. Revisão documental posterior não reexecuta essa suíte nem cria nova evidência funcional. [Comandos, tempos e limites](docs/andamento.md).
+Validação local anterior em **08/11/2026**: Python da venv com `scripts/check_quality.py` e variáveis acima, **177 passed**, sem falha/erro/skip (98 unitários, 77 integração/API, 2 HTTP real). pip check e Ruff aprovados. Aviso conhecido TestClient/HTTPX mantido visível. Instalação isolada e reinício nativo da API aprovados, demo preservado.
+
+**CI GitHub aprovada em 08/11/2026**, commit `c7c3331`: `python scripts/check_quality.py`, mesmos **177 testes**, zero falhas/erros/skips nos três relatórios JUnit. Ambiente observado nos logs: Ubuntu 26.04, Python 3.12.16, PostgreSQL 16.15, mesmos locks. A atualização documental posterior usa `[skip ci]` para não repetir a suíte sem mudança funcional; não atribui uma nova execução ao commit de documentação. Compose/imagem da API continuam não validados. [Evidências e limites](docs/andamento.md).
 
 ## Limitações, licença e publicação
 

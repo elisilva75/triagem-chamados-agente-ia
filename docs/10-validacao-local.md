@@ -1,5 +1,7 @@
 # Execução e validação local no Windows
 
+Estado atual: código publicado em [elisilva75/triagem-chamados-agente-ia](https://github.com/elisilva75/triagem-chamados-agente-ia), main/MIT, somente agente simulado. CI Ubuntu aprovada com 177 testes ([evidência](https://github.com/elisilva75/triagem-chamados-agente-ia/actions/runs/42507831040)); esse ambiente não valida Compose/imagem da API. O caminho Windows abaixo mantém sua evidência nativa, com Docker Compose ainda não executado.
+
 Executar na raiz em PowerShell. Requisitos: Python 3.12.x, PostgreSQL 16 com ferramentas de linha de comando e Git. [Versões e fontes](09-ambiente-e-versoes.md). Somente dados fictícios, AI_MODE=simulated e loopback; não há autenticação.
 
 ## Instalação

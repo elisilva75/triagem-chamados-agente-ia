@@ -1,5 +1,9 @@
 # Decisões aprovadas e limites desta entrega
 
+## Publicação autorizada e executada — 08/11/2026
+
+Eliana autorizou publicar código em repositório público elisilva75/triagem-chamados-agente-ia, main, licença MIT 2026 Eliana Gomes da Silva, com noreply exato fornecido por ela e reescrita somente dos e-mails do histórico de publicação. Preservar nomes/mensagens/ordem/conteúdo; backups e outras branches ficam locais; sem force push. Publicação e CI realizadas conforme [andamento](andamento.md). US08 adiada, AI_MODE=simulated, aplicação apenas loopback/sem autenticação; publicar o código não autoriza deploy da aplicação nem chamadas pagas. Compose permanece não validado até execução própria.
+
 ## Autorização US01/US07/US09 — 08/11/2026
 
 Eliana autorizou avançar nas pendências de ambiente/qualidade/portfólio do MVP simulado: verificar Docker, executar Compose isolado somente se disponível, concluir revisão do workflow e guias, ensaiar ambiente isolado e preparar publicação para revisão futura. Preservar demo e alterações existentes; sem publicar no GitHub, deploy ou chamadas pagas. Decisões técnicas rotineiras e validação automatizada estão autorizadas; não exigir repetição manual de cenários cobertos. Resultado desta autorização em [andamento](andamento.md); Docker ausente não foi convertido em aceite de Compose, nem revisão de workflow em CI remoto aprovado.

@@ -1,5 +1,7 @@
 # Estratégia de testes e avaliação
 
+Atualização de publicação: [CI GitHub 42507831040](https://github.com/elisilva75/triagem-chamados-agente-ia/actions/runs/42507831040) aprovada no commit c7c3331 com 177 testes (98 unit, 77 integração/API, 2 HTTP real), sem falha/erro/skip, relatórios JUnit conferidos. Ubuntu 26.04/Python 3.12.16/PostgreSQL 16.15, mesmos locks. Isso fecha a pendência remota de US07; Compose permanece não validado. O texto anterior abaixo registra a evidência local que precedeu esse run. Atualização somente documental usa skip ci, sem nova suíte funcional.
+
 **Estratégia do MVP aprovado, implementada até US07.** Pipeline local compartilhado com CI em scripts/check_quality.py: pip check, Ruff, 98 unitários, 77 integração/API e 2 HTTP real (177 passed, sem skips). Quatro testes novos verificam interrupção do pipeline, configuração obrigatória e rejeição de relatórios vazios/com skips; o restante reaproveita as suítes existentes, incluindo revisão humana/edição/invalidação. Duas execuções concorrentes do roundtrip de migração comprovaram bancos distintos registrados em JUnit. [Resultados e limites](andamento.md); [guia Windows](10-validacao-local.md). CI remota e Compose não executados. O aviso TestClient/HTTPX permanece visível. Não há percentual de cobertura de linhas medido; relatórios e rastreabilidade documentam os caminhos críticos.
 
 ## Camadas e isolamento

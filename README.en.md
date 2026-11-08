@@ -91,7 +91,7 @@ When updating code, stop the API, keep the cluster running, run `alembic upgrade
 
 ## Docker Compose — alternative not validated yet
 
-Docker was unavailable during the latest validation. Container build/start and restart persistence **have not been executed**. Install/start [Docker Desktop with Linux containers and Compose](https://docs.docker.com/desktop/setup/install/windows-install/) following its official prerequisites. Native testing does not certify containers or Linux.
+Docker was unavailable locally. **Compose build/start and restart persistence have not been executed**. Install/start [Docker Desktop with Linux containers and Compose](https://docs.docker.com/desktop/setup/install/windows-install/) following its official prerequisites. CI checks the application on a Linux runner with a PostgreSQL service; it does not validate the API image or Compose flow.
 
 Default published ports: **127.0.0.1:5432** (database) and **127.0.0.1:8000** (API). Stop your native API first or follow the [isolated project/alternative ports guide](docs/10-validacao-local.md). Do not stop unrelated services to free ports. Compose defines its own internal DATABASE_URL at db:5432 and fictitious YAML credentials; it does not use the native database or the DATABASE_URL from .env.
 
@@ -156,7 +156,7 @@ $env:APP_ENV = 'test'
 
 Pipeline: pip check, Ruff check/format, unit tests, PostgreSQL integration/in-process API tests and HTTP/TCP against a separate Uvicorn process. Fixtures create/migrate/drop only unique portfolio_test_<uuid> databases; they never clear the supplied administrative database. Do not use the demo DATABASE_URL as TEST_DATABASE_URL. The administrative URL must target loopback with the portfolio_test prefix and permission to create databases.
 
-The pipeline stops on the first failure and rejects empty/skipped mandatory suites. Git-ignored JUnit reports go to reports/. Partial check: `.\.venv\Scripts\python.exe -m pytest tests/unit -q`. Outside the pipeline, missing TEST_DATABASE_URL skips PostgreSQL tests; this does not prove they pass. Actions uses the same runner on Ubuntu with a PostgreSQL service and no paid key; **remote CI has not been executed**.
+The pipeline stops on the first failure and rejects empty/skipped mandatory suites. Git-ignored JUnit reports go to reports/. Partial check: `.\.venv\Scripts\python.exe -m pytest tests/unit -q`. Outside the pipeline, missing TEST_DATABASE_URL skips PostgreSQL tests; this does not prove they pass. Actions uses the same runner on Ubuntu with a PostgreSQL service and no paid key; [remote CI passed: 177 tests](https://github.com/elisilva75/triagem-chamados-agente-ia/actions/runs/42507831040).
 
 ## Troubleshooting
 
@@ -183,9 +183,11 @@ The pipeline stops on the first failure and rejects empty/skipped mandatory suit
 | SQLAlchemy / Alembic / psycopg | 2.0.57 / 1.20.1 / 3.3.8 |
 | pytest / HTTPX / Ruff | 9.2.0 / 0.28.1 / 0.17.4 |
 
-Windows 11 build 26300, PowerShell and native PostgreSQL. Complete pins: requirements.lock and requirements-dev.lock. These are the versions actually used, **not a promise for other patches/OSs**. Images python:3.12-slim and postgres:16 have no locally verified build/patch yet. [Sources and compatibility](docs/09-ambiente-e-versoes.md).
+Windows 11 build 26300, PowerShell and native PostgreSQL. Complete pins: requirements.lock and requirements-dev.lock. These are the versions actually used, **not a promise for other patches/OSs**. The API image python:3.12-slim has not been build-tested; the CI postgres:16 service ran PostgreSQL 16.15 according to its logs. [Sources and compatibility](docs/09-ambiente-e-versoes.md).
 
-Latest full suite: **2026-11-08**, exact command: venv Python with `scripts/check_quality.py` and the test environment variables above. **177 passed**, no failures/errors/skips (98 unit, 77 integration/API, 2 real HTTP). Dependency/Ruff checks passed. Known TestClient/HTTPX deprecation warning remains visible. Fresh-venv/clean-source installation, failure/retry/review/resolution demo and native API restart passed in an exclusive database; the demo was fully preserved. This was not a fresh machine or Docker/GitHub validation. Subsequent documentation review does not rerun this suite or create new functional evidence. [Commands, timings and limits](docs/andamento.md).
+Previous local validation on **2026-11-08**: venv Python with `scripts/check_quality.py` and the variables above, **177 passed**, no failures/errors/skips (98 unit, 77 integration/API, 2 real HTTP). Dependency/Ruff checks passed. The known TestClient/HTTPX warning remains visible. Isolated installation/native API restart passed and the demo was preserved.
+
+**GitHub CI passed on 2026-11-08**, commit `c7c3331`: `python scripts/check_quality.py`, the same **177 tests**, zero failures/errors/skips in all three JUnit reports. Log-observed environment: Ubuntu 26.04, Python 3.12.16, PostgreSQL 16.15 and the same locks. The subsequent documentation-only commit uses `[skip ci]` to avoid repeating the full suite without functional changes; it does not claim a new execution for that documentation commit. Compose/API image remain unvalidated. [Evidence and limits](docs/andamento.md).
 
 ## Limitations, license and publication
 

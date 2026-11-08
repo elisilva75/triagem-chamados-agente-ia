@@ -2,9 +2,9 @@
 
 ## Estado atual após US07/US09 — 08/11/2026
 
-US02–US06 mantêm critérios funcionais locais atendidos, agora com regressão de 177 testes aprovados. US07 tem pipeline local equivalente, relatórios por camada, gate de falha/skips e isolamento concorrente executados; **CI no GitHub continua pendente**. US09 tem README PT/EN, arquitetura/contrato atualizados, guia e demonstração ensaiados em exportação limpa de fontes com venv nova e banco exclusivo no PostgreSQL nativo; não foi uma máquina nova nem execução Linux. Revisão de arquivos e rastreabilidade em [andamento](andamento.md).
+US02–US06 mantêm critérios funcionais atendidos, com regressão de 177 testes localmente e na [CI GitHub aprovada](https://github.com/elisilva75/triagem-chamados-agente-ia/actions/runs/42507831040). US07 tem pipeline, relatórios por camada, gates e isolamento verificados, incluindo execução remota. US09 tem README PT/EN, guia/roteiro ensaiados, portfólio, publicação pública autorizada de main e clone verificado. A CI usa aplicação no runner Ubuntu e PostgreSQL de serviço; não valida Docker Compose/imagem da API. [Rastreabilidade e evidências](andamento.md).
 
-**Entrega final ainda bloqueada por US01-CA1/Compose e execução remota de CI.** Docker não disponível nesta máquina. US08 adiada não bloqueia o MVP simulado. Sem repetição manual obrigatória, publicação, deploy ou chamadas pagas. As seções históricas abaixo preservam a evolução e devem ser lidas à luz deste estado atual.
+**Pendência obrigatória restante para fechar integralmente o MVP: US01-CA1/Compose e persistência por reinício de serviços Compose.** Docker indisponível localmente; não concluído. US08 adiada não bloqueia o MVP simulado. Publicação de código autorizada e realizada; sem deploy ou chamadas pagas. Atualização documental pós-CI usa skip ci, com checks documentais locais, sem repetir a suíte funcional já aprovada. Seções abaixo preservam o histórico.
 
 **Proposta inicial — sem estimativa de prazo fechada.** Avançar em pequenas entregas, uma história por vez, somente após revisão do escopo.
 

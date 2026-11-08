@@ -1,5 +1,21 @@
 # Andamento e continuidade
 
+## 08/11/2026 — Repositório público e CI remota aprovados
+
+Retomada com leitura de AGENTS/README/andamento/documento 17 e inspeção real do Git: main em c7c3331, limpa, sem remoto. Reescrita de privacidade já estava concluída, portanto não foi repetida. Conta autenticada elisilva75 e inexistência do repositório reconferidas (404). Autorização explícita vigente: público/main/MIT/noreply confirmado, sem outras branches/tags/backups/force push, deploy ou chamadas pagas.
+
+Auditoria .local/audit_main_privacy.py refeita antes de publicar: 10 commits de main, zero ocorrências do endereço anterior em metadados, mensagens ou blobs/arquivos destinados à publicação; somente noreply confirmado nos author/committer. Os 9 commits reescritos mantêm nomes, árvores, mensagens byte a byte, datas e ordem dos pais; o décimo era a documentação pendente já incorporada. Backup bundle ignorado em .local e branches antigas ficam locais. Auditoria de padrões sem segredos ou artefatos locais no histórico de main. Nenhum valor sensível impresso.
+
+Criado via API o repositório público https://github.com/elisilva75/triagem-chamados-agente-ia, sem README/licença remotos automáticos. Adicionado origin e enviado somente refs/heads/main:refs/heads/main com push.followTags=false. Primeira tentativa falhou por certificado do backend Git local; repetida com http.sslBackend=schannel, sem desabilitar SSL, e concluída. Configuração TLS/push-refspec restrita ao repositório. Nenhuma sobrescrita/force push. API confirmou público, default_branch main, descrição/tópicos preparados, única branch main e nenhuma tag.
+
+Clone real em .local/published-clone-20261108 com --single-branch --branch main --no-tags: HEAD c7c333138c9f4948102a5575255db828ac18bf11 idêntico ao publicado, só noreply nos metadados, 90 arquivos rastreados, MIT presente, .env ativo ausente. Demo não acessado/alterado; nenhum servidor local reiniciado.
+
+**CI efetivamente executada e aprovada:** [checks / run 42507831040](https://github.com/elisilva75/triagem-chamados-agente-ia/actions/runs/42507831040), commit c7c3331, success. Instalação pelos locks, pip check, Ruff check/format, unitários, PostgreSQL/API e HTTP real, upload dos relatórios e encerramento dos serviços, todas as etapas aprovadas. Artefato test-results baixado em memória sem encaminhar Authorization em redirecionamentos; JUnit conferido: unit.xml 98, postgres-api.xml 77, http-real.xml 2, total **177 testes, zero falhas/erros/skips**. Logs observados: ubuntu-26.04, CPython 3.12.16, PostgreSQL 16.15. Evidência sanitizada em .local/ci-result-42507831040.json. Não houve falha do projeto a corrigir nem alteração de dependências.
+
+READMEs PT/EN, rastreabilidade e status de US07/US09 atualizados com resultado real; registros anteriores mantidos como histórico. Atualização pós-CI somente em documentação/comentários (sem versões/código/workflow alterados), com conferência de links, exemplos JSON, privacidade e diff. Commit documental usa [skip ci] para não repetir toda a suíte apenas por documentação, conforme pedido. A aprovação funcional é do commit c7c3331; não declarar outra execução para o commit documental posterior.
+
+**Estado final do MVP simulado:** US02–US06 critérios funcionais verificados local/remotamente; US07 atendida com CI remota; US09 ensaio/publicação concluídos no escopo documentado. US01 continua parcial: falta executar Compose/build da API e persistência por reinício do Compose; PostgreSQL de serviço na CI não substitui isso. US08/modelo real adiada, não bloqueia simulação. Sem deploy ou chamadas pagas. URL e pendências atualizadas; não resta decisão de visibilidade/e-mail para esta publicação autorizada.
+
 ## 08/11/2026 — Privacidade e publicação de main autorizadas
 
 Eliana confirmou público, conta elisilva75/nome triagem-chamados-agente-ia/main/MIT e forneceu o noreply exato exibido nas configurações da conta. Autorizou reescrita local de e-mail de author/committer, preservando nomes/mensagens/ordem/conteúdo, e publicação somente de main, sem force push/outras branches/tags/backups. As autorizações mais antigas de não publicar foram substituídas por essa autorização expressa. Sem deploy ou chamadas pagas; AI_MODE=simulated e Docker Compose pendente preservados.

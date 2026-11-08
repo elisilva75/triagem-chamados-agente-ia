@@ -1,4 +1,4 @@
-# Python 3.12; versões fixadas; Windows nativo validado; Linux/CI pendentes.
+# Python 3.12; versões fixadas; Windows nativo e CI Ubuntu validados; Compose pendente.
 alembic==1.20.1
 annotated-doc==0.0.5
 annotated-types==0.8.0
