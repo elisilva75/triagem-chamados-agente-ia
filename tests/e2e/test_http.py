@@ -79,6 +79,39 @@ def test_us02_http_real_process(migrated_url):
             )
             assert conflict.status_code == 409
             assert conflict.json()["error"]["code"] == "version_conflict"
+            triaged = client.post(path + "/triage", json={"expected_version": 2})
+            assert triaged.status_code == 200, triaged.text
+            suggested = triaged.json()["ticket"]
+            assert suggested["version"] == 4
+            assert suggested["suggestion"]["mode"] == "simulated"
+            assert suggested["final_classification"] is None
+            assert client.get(path).json() == suggested
+            edited_again = client.patch(
+                path,
+                json={
+                    "expected_version": 4,
+                    "description": "Texto fictício corrigido após triagem.",
+                },
+            )
+            assert edited_again.status_code == 200
+            assert edited_again.json()["suggestion"] is None
+            assert edited_again.json()["triage_status"] == "pendente"
+            history = client.get(path + "/triage-attempts").json()
+            assert history["total"] == 1
+            assert history["items"][0]["suggestion"] == suggested["suggestion"]
+            failed_ticket = client.post(
+                "/api/v1/tickets",
+                json={
+                    "title": "[SIMULADO:saida-invalida]",
+                    "description": "Dados fictícios para falha simulada.",
+                },
+            )
+            failed_path = failed_ticket.headers["location"]
+            failed = client.post(failed_path + "/triage", json={"expected_version": 1})
+            assert failed.status_code == 502
+            assert failed.json()["error"]["code"] == "invalid_ai_response"
+            assert client.get(failed_path).json()["triage_status"] == "falha"
+            assert client.get(failed_path + "/triage-attempts").json()["total"] == 1
     finally:
         process.terminate()
         try:

@@ -1,4 +1,4 @@
-"""Contratos dos snapshots; produção de sugestões/revisões continua futura."""
+"""Contratos de sugestão e snapshots; classificação final ainda depende de US06."""
 
 from typing import Annotated, Literal
 from uuid import UUID

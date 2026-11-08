@@ -22,3 +22,8 @@ ADR01, ADR02 e ADR06 aceitas para a fundação. ADR03–ADR05 continuam como des
 Aguardar validação desta entrega por Eliana antes de US03. US01/US02 só podem ser consideradas concluídas quando seus critérios tiverem evidência; limitações de ambiente não viram testes aprovados.
 
 Atualização: Eliana relatou homologação manual de cadastro, consulta, listagem/paginação, title ausente e UUID inexistente, registrada em [homologação US01/US02](11-homologacao-us01-us02.md), e autorizou US03. A ausência de persistência no POST rejeitado foi verificada adicionalmente pelo agente com contagem SQL antes/depois. US01 continua parcialmente validada; autorização de US03 não elimina a pendência de Compose. US04 e integração real continuam futuras.
+
+
+## Autorização de continuidade — 08/11/2026
+
+Eliana aceitou os resultados manuais E01–E04 de US03 e autorizou explicitamente iniciar **US04 conforme o backlog aprovado, exclusivamente em modo simulado**. Não repetir os cenários aceitos. US03 permanece com as pendências específicas de homologação de classificação/snapshots e estados dependentes dos fluxos de US04/US06. A autorização permite implementar/testar US04 e preparar homologação curta, incluindo invalidação de sugestão após edição. Não autoriza iniciar US05/US06, chamadas pagas, publicação ou deploy. Docker Compose e CI remota continuam pendentes; US01 parcialmente validada. Esta autorização atualiza o limite das entregas anteriores, sem converter pendências em aceite.

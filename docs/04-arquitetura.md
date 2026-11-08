@@ -1,6 +1,6 @@
 # Arquitetura e dados
 
-**Arquitetura do MVP — implementação incremental.** Fundação, cadastro e consulta nesta entrega; demais módulos permanecem planejados.
+**Arquitetura do MVP — implementação incremental até US04.** Fundação, cadastro, consulta, edição e agente simulado implementados; recuperação/retry, revisão e resolução permanecem futuros. Os complementos por história ao final atualizam o desenho inicial abaixo.
 
 **Atualização:** ADR01/ADR02/ADR06 aceitas para US01/US02 em 07/11/2026. Fundação e cadastro/consulta implementados; ferramentas/agente/revisão permanecem futuros. [Decisões aprovadas](08-decisoes-aprovadas.md), [ambiente/versões](09-ambiente-e-versoes.md) e [andamento](andamento.md) prevalecem sobre o status inicial acima. Migração 0001 cria Ticket e TicketEvent; tabelas/referências de tentativas e revisões serão criadas nas respectivas histórias, sem antecipar funcionalidades.
 
@@ -46,7 +46,7 @@ O bloqueio de linha serializa concorrentes; a segunda edição com a mesma vers�
 
 Esses JSONBs são projeções/snapshots, não substituem o futuro histórico de tentativas e revisões. US04/US06 deverão introduzir as entidades normalizadas previstas e suas referências, preservando os snapshots existentes via migração. A decisão evita simular uma revisão/triagem de produção nesta história e possibilita verificar RN11 agora. Downgrade de 0002 remove esses campos e perderia snapshots: ensaiado somente em bancos descartáveis, nunca no banco de homologação.
 
-## Contrato do agente (histórias futuras)
+## Contrato do agente (implementado em US04, complemento ADR08 abaixo)
 
 `AIProvider` recebe mensagens, definições de ferramentas e orçamento restante; devolve pedidos de ferramenta ou resultado final estruturado. Orquestrador executa apenas allowlist, valida argumentos e conta chamadas. Ferramentas: `consultar_categorias({})` devolve slugs/descrições/versão; `consultar_politica_prioridade({})` devolve faixas, campos esperados e versão. Argumentos adicionais são inválidos.
 
@@ -55,3 +55,18 @@ Resultado: `{category, priority, rationale, missing_fields}` conforme RN04. Vali
 Texto do chamado fica em mensagem de dados delimitada, nunca interpolado como instrução de sistema. Nenhuma ferramenta lê arquivos, executa código, navega na internet ou altera chamado. Logs guardam nomes/contagens de ferramentas, duração e códigos; não guardar raciocínio interno, prompt completo ou saída bruta.
 
 Variáveis propostas em [`.env.example`](../.env.example). Modo real deve falhar claramente se configuração faltar. Custo máximo monetário não é garantido só pelo teto de tokens: antes de ativar será preciso conferir preços e suporte a limite de entrada do provedor, definir orçamento e obter autorização. Nenhuma chamada real faz parte do planejamento.
+
+
+## US04 — ADR08: agente simulado e tentativas persistidas (08/11/2026)
+
+ADR04/ADR05 aceitas para US04: `app/agent/protocol.py` define AIProvider/ModelReply/ToolCall; `simulated.py` implementa roteiros reproduzíveis sem SDK/rede/credenciais. `tools.py` contém somente catálogo e política locais versionados, com argumentos vazios. Orquestrador valida allowlist, argumentos, saída Pydantic, consultas obrigatórias, 3 chamadas de modelo, 4 de ferramenta, orçamento de 20 s e teto informado de 2.000 tokens por resposta. Histórico de mensagens separa instrução de sistema de JSON com ticket_data não confiável. Só DTO validado chega à persistência; logs guardam nomes de ferramentas permitidas, IDs, contagens, duração e códigos, sem texto ou saída bruta.
+
+Simulador usa correspondências fixas de palavras para escolher fixtures; não é inferência de IA nem evidência de qualidade de modelo real. O título exato `[SIMULADO:saida-invalida]` seleciona fixture inválida para demonstrar a barreira de validação, sem acrescentar campos de controle ao contrato. Contagem de tokens é metadado roteirizado do simulador, não medição por tokenizer real. Prazos são verificados antes/depois de cada chamada e ferramenta e na finalização; o único provedor disponível é imediato e sem I/O. A interface exige que futuros adaptadores respeitem remaining_seconds/max_output_tokens; preempção de código Python arbitrariamente bloqueante não é oferecida por este laço síncrono. Integração externa permanece adiada.
+
+Migração 0003 **adiciona somente triage_attempts**, preservando tickets/eventos/snapshots. Tentativas têm FK ticket_id, número sequencial único por chamado e índice parcial único para status em_analise; constraints de modo, estado, contagens e coerência de resultado. Em vez de introduzir agora uma referência circular current_attempt_id, a tentativa ativa é identificada pela FK ticket_id + status em_analise único. Sugestão contém attempt_id produzido pelo próprio serviço; cliente não pode definir essa referência. Finalização compara ID da tentativa, status, versão capturada e revisão do chamado sob lock. Essa escolha evita FK circular e mantém pertencimento ao chamado por construção e pelos testes transacionais; atualizações das referências de revisão permanecem em US06.
+
+Serviço abre transação, bloqueia chamado, valida versão/estado, confirma tentativa e em_analise/version+1. Fecha sessão antes do agente. Em nova transação, publica resultado validado ou falha sanitizada e incrementa version outra vez; content_revision não muda. Tentativas concluídas não são alteradas pelas rotas; edição limpa a projeção atual, preservando tentativa e snapshot do evento. GET de tentativas é paginado por started_at/id. Cadastro, consulta e edição continuam sem chamar provedor.
+
+ADR03 implementada nesta entrega apenas na base necessária a US04: aquisição/finalização transacionais, prazo e descarte de resultado obsoleto. **Retry em falha, recuperação de execução expirada e ensaios completos de interrupção/falha na finalização são US05**. Nesta etapa POST triage aceita somente aberto/pendente; falha tem conteúdo preservado e edição efetiva pode retornar a pendente. Não prometer retry sem edição. Falha de armazenamento na finalização responde 503 e pode deixar em_analise; não prometer recuperação automática ainda. Estados de revisão/resolução continuam em US06.
+
+Nenhuma dependência adicionada ou reconfigurada: mantidos os locks e versões/fontes oficiais de [ambiente](09-ambiente-e-versoes.md). Execução exclusivamente AI_MODE=simulated.

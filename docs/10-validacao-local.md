@@ -1,6 +1,6 @@
 # Execução e validação local no Windows
 
-US01–US03: cadastro, consulta e edição por PATCH com expected_version. Sem autenticação, sem triagem implementada e sem chamadas de IA. Usar dados fictícios e manter bind em 127.0.0.1. Executar os comandos na raiz do projeto em PowerShell. Não alterar a política de execução global; se scripts estiverem bloqueados por política da máquina, usar os comandos manuais equivalentes ou informar o impedimento.
+US01–US04: cadastro, consulta, edição e triagem exclusivamente simulada. Sem autenticação ou chamadas de IA externas. Usar dados fictícios e manter bind em 127.0.0.1. Executar os comandos na raiz do projeto em PowerShell. Não alterar a política de execução global; se scripts estiverem bloqueados por política da máquina, usar os comandos manuais equivalentes ou informar o impedimento.
 
 ## Ambiente Python
 
@@ -50,7 +50,7 @@ Invoke-RestMethod "http://127.0.0.1:8000/api/v1/tickets/$($ticket.id)"
 Invoke-RestMethod 'http://127.0.0.1:8000/api/v1/tickets?limit=20&offset=0'
 ```
 
-Esperado: health ok; cadastro 201 (visível no Swagger/cliente com status), aberto/pendente, version=1, suggestion/final_classification nulos; consulta devolve o mesmo chamado. Entradas com título de 4 caracteres, descrição menor que 20, campo extra ou status no cadastro geram 422. ID UUID inexistente gera 404. Listagem limita 1–100. PATCH já disponível; seguir [homologação de US03](12-homologacao-us03.md). Triagem, revisão e resolução ainda não implementadas.
+Esperado: health ok; cadastro 201 (visível no Swagger/cliente com status), aberto/pendente, version=1, suggestion/final_classification nulos; consulta devolve o mesmo chamado. Entradas com título de 4 caracteres, descrição menor que 20, campo extra ou status no cadastro geram 422. ID UUID inexistente gera 404. Listagem limita 1–100. PATCH já disponível; seguir [homologação de US03](12-homologacao-us03.md). Triagem simulada implementada; revisão e resolução continuam futuras.
 
 Após atualizar o código para US03, aplicar `alembic upgrade head` (migração 0002 aditiva, sem apagar chamados) e reiniciar apenas a API deste projeto para carregar as novas rotas. Não aplicar downgrade ao banco demo; snapshots seriam removidos. Abrir `/openapi.json` e confirmar info.version=0.2.0, ou atualizar `/docs` com Ctrl+F5 para ver PATCH.
 
@@ -95,3 +95,10 @@ docker compose down
 ## CI
 
 Workflow em `.github/workflows/ci.yml`: Python 3.12, PostgreSQL 16, instalação pelo lock, pip check, Ruff, unitários, integração/API e HTTP real, com relatórios JUnit. Não inclui IA externa, chaves ou serviços pagos. O arquivo foi preparado localmente, sem publicar nem executar no GitHub. Eventuais custos/limites de execução da conta GitHub devem ser revistos quando houver autorização para publicar; não há contratação nesta etapa.
+
+
+## Atualização US04 — cluster e dados existentes
+
+Reutilizar `.local/pgdata` e banco demo existentes; não executar initdb/createdb novamente, não limpar dados. Aplicar apenas `alembic upgrade head` (0003 aditiva) e reiniciar somente a API identificada deste projeto, mantendo DATABASE_URL do demo, AI_MODE=simulated e bind 127.0.0.1:8000. Confirmar OpenAPI info.version=0.3.0 e rotas triage/triage-attempts. O health deve ser complementado por GET real do chamado para conferir o destino persistido. A migração não acontece por requisição.
+
+Homologação curta em [13-homologacao-us04.md](13-homologacao-us04.md); não repetir E01–E04 já aceitos. Retry e recuperação de tentativas expiradas são US05; não prometer que a API já recupera em_analise após interrupção. Docker Compose e CI remota permanecem pendentes.

@@ -6,8 +6,9 @@
 |---|---|---|
 | US01 | Implementada, validação parcial; não concluída | Docker ausente: CA1/Compose não executado; CA2 e CA3 com evidências locais |
 | US02 | Implementada; CA1–CA4 automatizados; cenários manuais informados por Eliana registrados | Dependência US01/Compose pendente; não persistência do POST rejeitado confirmada pelo agente |
-| US03 | Implementada; CA1–CA3 verificados localmente; aguardando homologação | Roteiro próprio; não iniciar US04 antes da validação |
-| US04–US06 | Não iniciadas | Aguardar validação de US03 e autorização de continuidade |
+| US03 | Implementada; CA1–CA3 automatizados; E01–E04 aceitos por Eliana em 08/11/2026 | Pendências específicas de homologação de classificação/snapshots preservadas; sugestão agora disponível por US04 e classificação final depende de US06 |
+| US04 | Autorizada e implementada exclusivamente simulada; aguardando homologação | CA1–CA4 verificados; regressão final 124 passed/1 warning. Aguardar homologação curta em docs/13-homologacao-us04.md |
+| US05–US06 | Não iniciadas | Retry/recuperação e revisão/resolução permanecem futuros |
 | US07 | Base de CI preparada para US01/US02; não concluída | Fluxos de triagem/revisão ainda futuros; sem execução remota |
 | US08 | Adiada | Somente provedor simulado autorizado; integração real e orçamento pendentes |
 | US09 | Não iniciada | Guia Windows antecipado só para a entrega atual; portfólio completo futuro |

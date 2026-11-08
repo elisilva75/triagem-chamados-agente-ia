@@ -2,12 +2,22 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
-from sqlalchemy import text
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
-from app.api.schemas import TicketCreate, TicketPage, TicketPatch, TicketRead
+from app.api.schemas import (
+    AttemptPage,
+    TicketCreate,
+    TicketPage,
+    TicketPatch,
+    TicketRead,
+    TriageRequest,
+    TriageResponse,
+)
 from app.application.tickets import edit_ticket, register_ticket
+from app.application.triage import triage_ticket
 from app.domain.catalog import TicketStatus, TriageStatus
+from app.infrastructure.models import TriageAttempt
 from app.infrastructure.repositories import TicketRepository
 
 router = APIRouter()
@@ -58,3 +68,31 @@ def get_ticket(ticket_id: UUID, session: SessionDep):
 def patch_ticket(ticket_id: UUID, body: TicketPatch, session: SessionDep):
     changes = body.model_dump(exclude_unset=True, exclude={"expected_version"})
     return edit_ticket(session, ticket_id, body.expected_version, changes)
+
+
+@router.post("/api/v1/tickets/{ticket_id}/triage", response_model=TriageResponse)
+def post_triage(ticket_id: UUID, body: TriageRequest, request: Request):
+    return triage_ticket(
+        request.app.state.sessions, ticket_id, body.expected_version, request.app.state.provider
+    )
+
+
+@router.get("/api/v1/tickets/{ticket_id}/triage-attempts", response_model=AttemptPage)
+def list_attempts(
+    ticket_id: UUID,
+    session: SessionDep,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    offset: Annotated[int, Query(ge=0)] = 0,
+):
+    if TicketRepository(session).get(ticket_id) is None:
+        raise HTTPException(404)
+    condition = TriageAttempt.ticket_id == ticket_id
+    items = session.scalars(
+        select(TriageAttempt)
+        .where(condition)
+        .order_by(TriageAttempt.started_at, TriageAttempt.id)
+        .limit(limit)
+        .offset(offset)
+    ).all()
+    total = session.scalar(select(func.count()).select_from(TriageAttempt).where(condition))
+    return {"items": items, "total": total, "limit": limit, "offset": offset}

@@ -30,3 +30,6 @@ Compatibilidade não é inferida apenas dessas páginas: `pip check`, migraçõe
 Limitação conhecida: Starlette 1.10.0 emite aviso de depreciação do uso de HTTPX pelo TestClient. Os testes continuam funcionais com HTTPX 0.28.1; manter o aviso visível e avaliar migração de transporte na próxima atualização técnica. Não instalar HTTPX2 automaticamente nem confundir aviso com falha de teste.
 
 O sandbox impediu a inicialização normal do PostgreSQL (token restrito) e a instalação de pacotes ficou sem progresso. Foram solicitadas execuções autorizadas fora do sandbox para inicializar o cluster isolado e instalar apenas na .venv; nenhum serviço global foi iniciado ou alterado. O comando de preparação do cluster deve ser executado no PowerShell do mesmo usuário que o inicializou.
+
+
+US04 (08/11/2026): nenhuma dependência adicionada/atualizada ou configuração de versão alterada. Reutilizados os locks e fontes oficiais acima; versão da aplicação passa a 0.3.0. Sem SDK, tokenizer ou provedor externo. Pip check e execução de testes são registrados no andamento; esta atualização não representa instalação limpa ou execução Docker/CI.

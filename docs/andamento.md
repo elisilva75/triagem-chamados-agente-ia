@@ -1,5 +1,127 @@
 # Andamento e continuidade
 
+## 08/11/2026 — US04 simulada implementada; aguardando homologação de Eliana
+
+### Autorização e escopo
+
+Eliana aceitou E01–E04 de US03 e autorizou US04 exclusivamente simulada. Aceite registrado sem repetir cenários. US03 permanece aberta com pendências específicas de sugestão/classificação/snapshots; sugestão passa a estar disponível pelo Swagger nesta entrega, classificação final/resolução continuam dependentes de US06. US05/US06 não iniciadas, US08 adiada. Docker Compose e CI remota continuam pendentes; US01 parcialmente validada. Não houve chamada paga, SDK de IA, publicação ou deploy.
+
+Git inspecionado: branch anterior feat/us03-ticket-edit, com alterações documentais e arquivo workspace preexistentes preservados. Criada branch local feat/us04-simulated-triage (primeira tentativa bloqueada pela restrição de escrita em .git, repetida com permissão ampliada). Não houve rebase, reset ou sobrescrita do histórico. Arquivo projeto-agente-ia.code-workspace mantido fora da entrega. Nenhuma dependência adicionada/atualizada; locks e fontes oficiais anteriores mantidos. Aplicação 0.3.0.
+
+### Rastreabilidade e comportamento entregue
+
+| Critérios/tasks | Código | Evidências |
+|---|---|---|
+| US04-CA1/T1/T2 | agent/protocol.py, simulated.py, tools.py, orchestrator.py; application/triage.py; rotas/schemas | Ferramentas locais consultadas, sugestão validada e modo simulated; tentativa confirmada antes do provedor, conexão liberada, sucesso sem classificação final |
+| US04-CA2/T2 | AgentOutput, allowlist e erros sanitizados; modelos/migração 0003 | Enums, extras, justificativa curta, ferramenta desconhecida/argumentos inválidos/consulta ausente rejeitados; nenhuma sugestão inválida publicada, conteúdo preservado e tentativa falha consultável |
+| US04-CA3/T2 | Laço e orçamento externos ao provedor; validação de ausentes | Exatos 3 modelos/4 ferramentas/2.000 tokens aceitos, chamada adicional rejeitada; ausentes 0/4 aceitos, 5/duplicatas rejeitados; relógio controlado inclui tempo de ferramenta/modelo |
+| US04-CA4/T2 | Dados JSON separados do sistema; fixtures simuladas | Sem impacto informado, inclusive dúvida: média provisória e impacto ausente; prompt injection não habilita shell ou categoria externa; AV01–AV08 com roteiros, sem avaliação de modelo real |
+| Base transacional US04/T2 | models.TriageAttempt, application/triage.py, migração 0003 | Uma tentativa ativa/numeração única, finalização condicional, duas conexões concorrentes com só um agente; migração preserva conteúdo/eventos/snapshots e roundtrip só em banco descartável |
+| Regressão US01–US03/T2 | Suítes anteriores + tests/api/test_triage.py e tests/e2e/test_http.py | Cadastro, consulta, edição, conflitos, no-op com sugestão real do simulador, invalidação/snapshot e histórico de tentativas; teste TCP/Uvicorn inclui sucesso e falha relevante |
+| US04-T3 | README, arquitetura ADR08, contrato, backlog, ambiente/guia e docs/13-homologacao-us04.md | Homologação curta preparada; nenhum resultado manual de US04 presumido |
+
+Entidade normalizada TriageAttempt adicionada por migração somente aditiva. FK ticket_id e índice único parcial identificam a tentativa ativa sem referência circular nova em Ticket; sugestão guarda attempt_id gerado internamente. Finalização confere tentativa/status, revisão e versão capturada sob lock. Edição mantém tentativa imutável e snapshot anterior no evento. Rationale simulado usa descrições/ política retornadas pelas ferramentas; regras de fixture não são inferência de modelo real. Detalhes e limites em ADR08.
+
+### Testes realmente executados
+
+Comandos na raiz com Python da .venv, PostgreSQL 16 local e bancos exclusivos portfolio_test_<uuid>, sem limpar o demo:
+
+```powershell
+.\.venv\Scripts\python.exe -m ruff check .
+.\.venv\Scripts\python.exe -m ruff format --check .
+.\.venv\Scripts\python.exe -m pip check
+$env:TEST_DATABASE_URL='postgresql+psycopg://portfolio_test:senha_ficticia_teste@127.0.0.1:55432/portfolio_test'
+.\.venv\Scripts\python.exe -m pytest -q --junitxml=reports/us04-complete-final.xml
+```
+
+**Resultado final: 124 passed, 1 warning, 181,43 s; zero falhas, erros ou skips.** São 73 unitários, 39 API dentro do processo com PostgreSQL real, 11 de integração (10 com PostgreSQL ativo e um de conexão recusada por driver real) e 1 HTTP/TCP com Uvicorn e PostgreSQL real. A execução final cobre o código entregue, incluindo as justificativas e a regra de impacto refinadas. Não há SQLite, chamada de IA externa ou teste no banco demo.
+
+Evidências intermediárias: unitários iniciais 73 passed/1 warning; API/migração focados 15 passed/1 warning. Primeira suíte completa: 122 passed/2 failed, 174,36 s; corrigidos teste antigo que enumerava só as rotas US01–US03 e fixture SQL de migração cujo JSON literal era interpretado como bind parameters. Segunda suíte completa: 124 passed/1 warning, 199,19 s. Verificação do limite de modelo refinada para isolar quarta chamada sem exceder ferramentas: 36 testes de agente aprovados. Após separar validação de domínio da serialização API, foco agente/API/integração/HTTP: 53 passed/1 warning, 69,57 s. Ajuste final de justificativa a partir das respostas das ferramentas e regra de dúvida sem impacto motivou a suíte final acima. Falhas intermediárias de Ruff (formatação/linhas longas) corrigidas; Ruff e pip check aprovados ao final. Aviso conhecido Starlette/TestClient sobre HTTPX permanece, sem pacote adicional para ocultá-lo. Relatórios locais em reports/, ignorados pelo Git.
+
+### Demo e Swagger preparados
+
+Executado snapshot somente leitura de todos os campos de tickets/ticket_events, `alembic upgrade head` no demo e novo snapshot: **preservação integral True, 1 chamado, 2 eventos, 0 tentativas**, migração 0003. Evidência operacional local `.local/demo-us04-preservation.json`, ignorada pelo Git. Nenhum POST/PATCH executado no demo pelo agente. Downgrade somente em testes descartáveis.
+
+Primeira tentativa de reinício da API foi interrompida antes de encerrar processos porque Get-NetTCPConnection não encontrou listener, embora HTTP respondesse; Get-CimInstance/netstat na sandbox também tinham limitações de acesso/visibilidade. Identificação por comando Uvicorn, executável absoluto da .venv deste projeto e parentesco confirmou launcher 18120/servidor 18256; só esses processos foram encerrados. API iniciada em modo hidden/loopback com AI_MODE=simulated e DATABASE_URL do demo. Verificação: /health, /docs, /openapi.json e GET do chamado retornaram 200; API 0.3.0, rota triage presente, chamado ad903cac-a750-48d3-b205-91da97d7adee version/content_revision=2, aberto/pendente, suggestion=null; GET triage-attempts retornou 200/total=0. Após os últimos ajustes, API recarregada novamente identificando launcher 20720 e seu único filho pelo comando/parentesco. Launcher final PID **17332**, logs `.local/api-us04-final.*`, fora do Git. Nova conferência HTTP de health/docs/OpenAPI/chamado/tentativas retornou 200 e SQL somente leitura confirmou novamente igualdade integral com o snapshot anterior e dois eventos. API e banco deixados ativos; PIDs devem ser reconferidos antes de qualquer encerramento.
+
+### Homologação e limites preservados
+
+**US04 implementada e verificada automaticamente, aguardando homologação de Eliana; não encerrada.** Roteiro curto em [13-homologacao-us04.md](13-homologacao-us04.md): M01 sugestão → no-op classificado → edição invalida sugestão e mantém tentativa; M02 saída inválida → falha sanitizada, chamado preservado. Ambos aguardam relato. Não repetir E01–E04 de US03. Pendências de US03 com sugestão tornam-se verificáveis agora, sem marcá-las aprovadas antes do relato; classificação final/resolvido dependem de US06. Snapshot após múltiplas edições segue com evidência automatizada e pendência manual registrada.
+
+Retry em falha, recuperação por prazo e ensaios completos de interrupção/finalização ficam em US05. Nesta entrega triage exige aberto/pendente; falha pode retornar a pendente por edição efetiva, sem oferecer retry direto ainda. Prazo verificado nas fronteiras das chamadas e na finalização; simulador imediato/sem I/O. Preempção de provedor Python arbitrariamente bloqueante não está implementada; a interface exige respeito ao orçamento para futuros adaptadores. Tokens do simulador são metadados roteirizados, não medição real de tokenizer. Nenhuma qualidade de IA externa alegada. Docker Compose e CI no GitHub permanecem não executados; não declarar cobertura Docker/Linux/CI por testes nativos. Somente AI_MODE=simulated e uso em loopback.
+
+
+## 08/11/2026 — E04d informado; roteiro E01–E04 coberto no alcance dos relatos
+
+E04d/US03-CA2/CA3 registrado sem duplicação como **homologação manual informada por Eliana**: PATCH expected_version=2/description="curta" retornou HTTP 422, validation_error, body.description/string_too_short. GET posterior HTTP 200 manteve título, descrição, version=2, content_revision=2 e timestamps anteriores. Sem observação visual ou reexecução do PATCH pelo agente.
+
+Conferência técnica: `psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U portfolio_test -d portfolio_chamados_demo -c <SQL>`, com `BEGIN READ ONLY; SHOW transaction_read_only; SELECT` de chamado/contagem/eventos e `COMMIT`: **saída 0**, modo somente leitura on, **exatamente dois eventos**, criado/revisão 1 e editado/revisão 2; nenhum evento adicional após E04d. Chamado ad903cac-a750-48d3-b205-91da97d7adee com version/content_revision=2, created_at=2026-11-07T21:23:24.789820Z, updated_at=2026-11-08T13:01:30.959837Z; snapshot anterior mantém revisão 1 e classificações nulas. Nenhuma escrita de dados ou mudança operacional.
+
+E01–E03 e os quatro exemplos E04a–E04d estão registrados no alcance dos relatos, com histórico básico conferido tecnicamente. Não solicitar repetição desses exemplos nem confundir E04 com homologação de todos os limites/tipos. A matriz atual de cenários restantes está em [homologação US03](12-homologacao-us03.md): testes automatizados já executados na entrega de 07/11/2026 cobrem os demais limites, entradas inválidas, UUID ausente no PATCH, estados bloqueados, concorrência, rollback, migração e classificação com fixtures. Revisão dos arquivos de teste nesta etapa; **suíte não reexecutada**. Evidência histórica: 72 passed/1 warning, registrada abaixo; não atribuir esse resultado a nova execução.
+
+**US03 não encerrada e US04 não iniciada.** Homologação manual pendente de classificação não nula e seus snapshots preservada; produção pelo Swagger depende de US04 (sugestão) e US06 (classificação final). Estados em_analise/resolvido dependem dos respectivos fluxos futuros para eventual homologação manual, mas já têm testes com fixtures. Não semear o demo nem antecipar histórias. Não há próximo exemplo E05 definido no roteiro atual. Não criar exigência de repetir manualmente toda a suíte: revisão/aceite de Eliana deve considerar a matriz de evidências e as pendências sem convertê-las em aprovação automática. Docker Compose e CI no GitHub pendentes, US01 parcialmente validada; US08 adiada, AI_MODE=simulated, sem chamadas pagas, publicação ou deploy.
+
+
+## 08/11/2026 — E04c informado; histórico reconfirmado somente em leitura
+
+E04c/US03-CA2/CA3: **homologação manual informada por Eliana**, sem duplicação. PATCH expected_version=2 e title="abcd": HTTP 422, validation_error, campo body.title, motivo string_too_short. GET posterior HTTP 200 preservou título, descrição, version=2, content_revision=2 e timestamps anteriores. O agente não observou visualmente nem reexecutou o PATCH.
+
+Conferência técnica executada com `psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U portfolio_test -d portfolio_chamados_demo -c <SQL>`: `BEGIN READ ONLY; SHOW transaction_read_only; SELECT` de versões/timestamps, contagem e eventos do chamado `ad903cac-a750-48d3-b205-91da97d7adee`; `COMMIT`. **Saída 0, transaction_read_only=on; exatamente dois eventos**, criado/revisão 1 e editado/revisão 2, sem evento adicional após E04c. Version/content_revision=2; created_at=2026-11-07T21:23:24.789820Z e updated_at=2026-11-08T13:01:30.959837Z. Nenhuma escrita de dados ou alteração de processo; nenhuma nova execução de testes de aplicação.
+
+**Próximo cenário vigente: E04d — descrição abaixo de 20 caracteres.** No mesmo chamado, PATCH `{"expected_version":2,"description":"curta"}` (usar versão atual se houver mudança posterior). Esperado HTTP 422/validation_error; GET posterior HTTP 200 preservando título, descrição, versões e timestamps. **E04d não executado; aguardar relato de Eliana.** Não repetir E01–E03/E04a–E04c. E04 completo e US03 continuam abertos.
+
+Pendências preservadas: sugestão existente depende de US04 e classificação final de US06 para homologação via Swagger; fixtures automatizadas não equivalem a homologação manual de classificação não nula. Docker Compose e CI no GitHub pendentes, US01 parcialmente validada. Sem início de US04/US06, US08 adiada; AI_MODE=simulated, sem chamadas pagas, publicação ou deploy.
+
+
+## 08/11/2026 — E04b informado; histórico conferido somente em leitura
+
+E04b/US03-CA2/CA3 registrado uma única vez como **homologação manual informada por Eliana**: PATCH com expected_version=2 e title=null retornou HTTP 422/validation_error; GET posterior HTTP 200 preservou título, descrição, version=2, content_revision=2 e timestamps anteriores. Sem observação visual nem reexecução do PATCH pelo agente.
+
+Conferência técnica executada com `psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U portfolio_test -d portfolio_chamados_demo -c <SQL>`: `BEGIN READ ONLY; SHOW transaction_read_only; SELECT` de chamado, contagem e eventos, seguido de `COMMIT`. **Saída 0**, transaction_read_only=on. Chamado `ad903cac-a750-48d3-b205-91da97d7adee`: version=2/content_revision=2, created_at=2026-11-07T21:23:24.789820Z, updated_at=2026-11-08T13:01:30.959837Z. **Exatamente dois eventos**, criado/revisão 1 e editado/revisão 2; nenhum evento adicional após E04b. Snapshot anterior da edição mantém revisão 1 e classificações nulas. Nenhuma escrita de dados ou alteração de processo; nenhuma nova execução de testes de aplicação alegada.
+
+**Próximo cenário vigente: E04c — título abaixo de 5 caracteres**, conforme roteiro: no mesmo chamado, PATCH `{"expected_version":2,"title":"abcd"}`. Esperado HTTP 422/validation_error; GET posterior HTTP 200 com título, descrição, versões e timestamps preservados. Usar versão atual caso outro GET indique mudança. **E04c não executado; aguardar relato de Eliana antes de E04d.** Não repetir E01–E03/E04a/E04b. E04 completo e US03 permanecem abertos.
+
+Pendências preservadas: classificação existente não nula depende de US04 (sugestão) e US06 (classificação final) para produção pelo Swagger; evidência automatizada com fixtures não equivale à homologação manual. Docker Compose e CI no GitHub pendentes; US01 parcialmente validada. US04/US06 não iniciadas, US08 adiada; somente AI_MODE=simulated, sem chamadas pagas, publicação ou deploy.
+
+
+## 08/11/2026 — Ambiente restabelecido; histórico de E04a reconfirmado
+
+Por solicitação de Eliana, consultado o guia de execução e confirmado `.local/pgdata/PG_VERSION=16`. `pg_ctl status` informou servidor parado. Iniciado **o cluster existente**, com `pg_ctl -D <projeto>/.local/pgdata -l <projeto>/.local/postgres.log -o "-h 127.0.0.1 -p 55432" -w start`, sem initdb, createdb, limpeza ou migração. Primeira tentativa na sandbox falhou com erro 87 de criação de token; execução com permissão ampliada iniciou com sucesso. Aviso de possível servidor existente foi emitido pelo pg_ctl; nenhum PID/arquivo foi removido manualmente.
+
+Consulta real por `psql -X -v ON_ERROR_STOP=1` ao banco demo, com `BEGIN READ ONLY; SHOW transaction_read_only; SELECT ...; COMMIT`, executada com sucesso: modo somente leitura `on`, banco `portfolio_chamados_demo`, endereço 127.0.0.1, porta 55432, migração 0002. Chamado `ad903cac-a750-48d3-b205-91da97d7adee`: **version=2, content_revision=2**. Histórico reconfirmado após E04a: **exatamente dois eventos**, criado/revisão 1 e editado/revisão 2, sem evento adicional pela rejeição. Snapshot da edição permanece com content_revision=1, suggestion=null e final_classification=null. Essa consulta resolve a pendência de conferência antes impedida por conexão recusada; não é reexecução do PATCH nem homologação visual pelo agente.
+
+API iniciada em segundo plano com Start-Process/WindowStyle Hidden, Python da .venv, Uvicorn factory, bind 127.0.0.1:8000, DATABASE_URL do demo e AI_MODE=simulated. Launcher PID 18120 (reconferir identidade antes de encerrar); logs `.local/api-restored.stdout.log` e `.local/api-restored.stderr.log`. GET /health, /docs e /openapi.json retornaram **200**; versão 0.2.0 e PATCH presente. **GET /api/v1/tickets/ad903cac-a750-48d3-b205-91da97d7adee retornou 200 com o registro persistido**, comprovando consulta pela API além do health: aberto/pendente, versões 2, suggestion/final_classification nulos, created_at=2026-11-07T21:23:24.789820Z e updated_at=2026-11-08T13:01:30.959837Z. Nenhuma escrita de chamado/evento. Inspeção complementar com Get-NetTCPConnection teve acesso negado; isso não invalida os retornos HTTP nem a conexão SQL confirmados. API e banco deixados ativos, sem garantia de sobrevivência ao encerramento da sessão do sistema.
+
+**Próximo cenário: E04b — título nulo**, usando expected_version=2 consultada. Orientar pelo Swagger e aguardar resultado de Eliana; **não executado e não homologado nesta etapa**. E01–E03 e E04a não foram repetidos. US03 continua aberta. Homologação com sugestão existente depende de US04; classificação final depende de US06; fixtures automatizadas não equivalem a homologação manual. Docker Compose e CI no GitHub continuam pendentes, US01 parcialmente validada. Sem início de US04/US06, chamadas pagas, publicação ou deploy. Verificação operacional SQL/HTTP executada; sem nova execução da suíte de testes de aplicação.
+
+
+## 08/11/2026 — E04a informado; nova consulta do histórico sem conexão
+
+Registrada em [homologação US03](12-homologacao-us03.md) a **homologação manual informada por Eliana**: PATCH somente com expected_version=2 retornou 422/validation_error; GET posterior 200 com título, descrição, version=2, content_revision=2 e timestamps anteriores preservados. E04a confirmado no alcance do relato, sem reexecução pelo agente; E04 completo e US03 continuam abertos.
+
+Conferência somente leitura tentada com `psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 55432 -U portfolio_test -d portfolio_chamados_demo -c <SQL>`: transação preparada com `BEGIN READ ONLY`, `SHOW transaction_read_only`, SELECT de chamado/contagem/eventos e COMMIT. Resultado: **conexão recusada, saída 1; SQL não executado**. Nenhum dado ou processo alterado. Os dois eventos foram confirmados na consulta anterior a E04a, mas **não reconfirmados após a rejeição atual**. Pendente repetir consulta quando PostgreSQL estiver disponível; não inferir histórico apenas do GET.
+
+Próximo cenário vigente: **E04b, title=null**, com versão atual conferida por GET; esperado 422/validation_error e GET posterior integralmente inalterado. Aguardar retorno antes de E04c, sem repetir cenários homologados. Dependências de US04 (sugestão) e US06 (classificação final) para homologação de classificação não nula via Swagger preservadas; sem semear dados ou antecipar histórias. Docker Compose e CI no GitHub pendentes; US01 parcialmente validada. US04 não iniciada. Nenhum teste de aplicação novo executado ou alegado; somente tentativa de consulta operacional e atualização documental. Sem chamadas pagas, publicação ou deploy; AI_MODE=simulated.
+
+
+Nova tentativa nesta continuidade de 08/11/2026: mesmo relato de E04a reconhecido, sem duplicar homologação. Consulta `psql -X -v ON_ERROR_STOP=1` ao mesmo banco/porta, com `BEGIN READ ONLY`, verificação do modo, SELECT de versões, contagem e eventos e COMMIT: conexão novamente recusada, código de saída do psql=2. Nenhum SQL executado, nenhum processo iniciado e nenhum dado alterado. O código 1 da tentativa anterior correspondeu ao comando PowerShell que lançou erro após a falha do psql. Histórico após E04a continua pendente de reconferência; não afirmar dois eventos atuais. Próximo cenário continua E04b (title=null); não avançar sem seu relato. US04/US06, Compose e CI mantêm as dependências e pendências acima.
+
+## 08/11/2026 — E03 informado e histórico conferido no PostgreSQL
+
+Eliana informou E03/US03-CA3: HTTP 200, título normalizado, version/content_revision mantidos em 2 e timestamps iguais ao GET anterior. Registrado como homologação manual informada em [homologação US03](12-homologacao-us03.md).
+
+Conferência técnica do agente: `psql` em 127.0.0.1:55432/portfolio_chamados_demo, transação `BEGIN READ ONLY`, SELECT de versões e de eventos/contagens, COMMIT; execução com sucesso. Único chamado ad903cac-a750-48d3-b205-91da97d7adee na versão/revisão 2. Exatamente **dois eventos**: criado/revisão 1 e editado/revisão 2, um de cada, sem evento extra para o no-op. Snapshot de edição preserva revisão anterior 1, suggestion=null e final_classification=null. Não houve escrita nem nova execução de PATCH pelo agente. Essa consulta não comprova preservação de classificação não nula; dependência de US04/US06 para geração via Swagger continua registrada.
+
+Próximo cenário guiado: **E04a — PATCH apenas com expected_version=2, sem title/description**; esperado 422/validation_error e GET inalterado. Aguardar retorno antes de outro subcaso. E04 não encerrado; homologação de US03 permanece aberta. Docker Compose e CI no GitHub pendentes; US01 não totalmente validada. Sem início de US04, publicação, deploy ou chamadas pagas. Apenas consulta operacional/documentação nesta etapa; nenhum teste de aplicação novo alegado.
+
+## 08/11/2026 — Homologação manual parcial de US03 informada por Eliana
+
+Eliana informou: PATCH com expected_version=1 retornou 200, descrição alterada e título preservado, version/content_revision 1→2; novo PATCH com versão 1 e outra descrição retornou 409/version_conflict; GET posterior retornou 200, versões=2 e descrição da primeira edição preservada, sem aplicar a rejeitada. Registro atualizado em [homologação US03](12-homologacao-us03.md), distinguindo relato humano de automação. ID, texto integral, timestamps e estado da classificação não foram informados, portanto não foram presumidos.
+
+**US03 continua em homologação, não encerrada.** Próximo cenário: E03/no-op após trim, RN01/RN11 e US03-CA3; orientar somente esse cenário e aguardar retorno antes de E04. Comparar resposta com GET anterior, inclusive timestamps e versões. Histórico básico pode ser conferido agora por SQL somente leitura, mas não há endpoint de eventos no Swagger. Invalidação/snapshot de classificação existente dependem, para geração pelo fluxo público local da API, de US04 (sugestão) e US06 (classificação final). Evidência automatizada com fixtures já existe, mas não é homologação manual; não semear dados diretamente no demo nem iniciar essas histórias para contornar o limite.
+
+Docker Compose e execução do CI no GitHub continuam pendentes; US01 não totalmente validada. Nenhum código, dado de chamado ou estado operacional alterado nesta etapa; nenhuma nova execução de testes de aplicação declarada. Mudança documental para registrar resultados e conduzir o próximo cenário. US04 não iniciada, nenhuma publicação ou chamada paga.
+
 ## 07/11/2026 — Homologação informada de US02 e implementação de US03
 
 ### Retorno de Eliana e verificação complementar

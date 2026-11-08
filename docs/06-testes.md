@@ -1,6 +1,6 @@
 # Estratégia de testes e avaliação
 
-**Estratégia do MVP aprovado.** Plano completo abaixo; execução incremental de US01/US02 e resultados reais em [andamento](andamento.md). Suítes de agente, edição e revisão continuam planejadas. O guia [Windows](10-validacao-local.md) distingue mocks, driver real, PostgreSQL real, testes dentro do processo e HTTP por TCP.
+**Estratégia do MVP aprovado.** Plano completo abaixo; execução incremental de US01/US02 e resultados reais em [andamento](andamento.md). Suítes de edição e agente simulado implementadas até US04; revisão continua futura. O guia [Windows](10-validacao-local.md) distingue mocks, driver real, PostgreSQL real, testes dentro do processo e HTTP por TCP.
 
 ## Camadas e isolamento
 
@@ -54,3 +54,14 @@ Critérios de saída do agente simulado: 100% das validações estruturais e de 
 ## Evidências por história
 
 Manter no andamento: IDs de CA, arquivos alterados, comandos completos, ambiente, saída resumida, quantidade de testes e falhas/itens não executados. Não concluir história com critério obrigatório pendente. Cobertura numérica é apoio, não substitui teste de concorrência, falha e fluxo HTTP real. Metas de desempenho são medidas separadamente com ambiente registrado, sem flakiness obrigatória no CI.
+
+
+## Cobertura implementada US04
+
+`tests/unit/test_agent.py`: saída estrita (enums, justificativa, extras, ausentes únicos 0–4), ferramentas obrigatórias/allowlist/argumentos, limites 3/4/2000, relógio controlado incluindo tempo de ferramenta/modelo e fixtures AV01–AV08 reproduzíveis. Texto hostil permanece dado e não habilita ferramentas externas. Isso mede o simulador, não qualidade semântica de modelo real.
+
+`tests/api/test_triage.py`: PostgreSQL real e TestClient dentro do processo, tentativa confirmada/conexão liberada antes do provedor, sucesso, falhas sanitizadas, contagens, paginação, estados/versão, no-op classificado e edição preservando histórico/snapshot. `tests/integration/test_triage.py`: migração aditiva com comparação de dados, roundtrip isolado e disputa de duas conexões. `tests/e2e/test_http.py`: Uvicorn/TCP real, fluxo cadastro/consulta/edição/triagem, invalidação por edição e saída inválida. Regressão completa mantém os testes anteriores de US01–US03. Comandos/resultados efetivos e limitações em andamento; sem chamadas pagas ou avaliação de modelo real.
+
+Homologação manual curta em [US04](13-homologacao-us04.md), aguardando relato de Eliana. E01–E04 de US03 aceitos; testes não substituem pendências manuais específicas. Docker Compose e CI remota continuam não executados.
+
+As fixtures implementadas AV06/AV08 explicitam “sem bloqueio” antes de qualquer texto hostil para representar baixo impacto. Sem impacto informado, inclusive em dúvidas, o roteiro usa média provisória e inclui impacto nos ausentes; isso não é avaliação de interpretação por IA real.

@@ -2,7 +2,7 @@
 
 - Comunicar em português, com explicações objetivas. Autora do portfólio: Eliana Gomes da Silva.
 - Ler README.md e docs/andamento.md antes de continuar; preservar arquivos existentes.
-- Escopo aprovado: ler docs/08-decisoes-aprovadas.md. Cenários de cadastro/consulta homologados manualmente conforme relato em docs/11-homologacao-us01-us02.md; US01 parcialmente validada, Docker/CI remota pendentes. Eliana autorizou US03; implementar somente edição e aguardar sua validação antes de US04.
+- Escopo aprovado: ler docs/08-decisoes-aprovadas.md. Cenários de cadastro/consulta homologados manualmente conforme relato em docs/11-homologacao-us01-us02.md; US01 parcialmente validada, Docker/CI remota pendentes. Eliana aceitou E01–E04 de US03 e autorizou US04 exclusivamente simulada em 08/11/2026; preservar pendências específicas de US03 dependentes de US04/US06. Implementar/testar US04 e aguardar homologação antes de avançar para US05/US06.
 - Após revisão, trabalhar em uma história por vez, com rastreabilidade história → critérios → tasks → código → testes → evidências.
 - Decisões rotineiras não exigem confirmação. Perguntar sobre produto quando necessário, bloqueios reais ou ações que exigem autorização.
 - Usar a base técnica de docs/04-arquitetura.md. Consultar documentação oficial para compatibilidade de versões antes de configurar dependências; registrar versões e fontes.

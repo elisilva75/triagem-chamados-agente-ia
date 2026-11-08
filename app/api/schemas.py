@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import (
@@ -76,12 +76,61 @@ class ErrorDetail(BaseModel):
     code: str
 
 
+class TriageErrorDetail(BaseModel):
+    ticket_id: UUID
+    attempt_id: UUID
+    triage_status: Literal["falha"]
+
+
 class ErrorBody(BaseModel):
     code: str
     message: str
-    details: list[ErrorDetail]
+    details: list[ErrorDetail | TriageErrorDetail]
     request_id: UUID
 
 
 class ErrorResponse(BaseModel):
     error: ErrorBody
+
+
+class TriageRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    expected_version: Annotated[int, Field(strict=True, ge=1)]
+
+
+class AttemptRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    ticket_id: UUID
+    attempt_number: int
+    content_revision: int
+    status: Literal["em_analise", "sucesso", "falha"]
+    mode: Literal["simulated"]
+    provider: None = None
+    model: None = None
+    catalog_version: str
+    policy_version: str
+    started_at: datetime
+    deadline_at: datetime
+    finished_at: datetime | None
+    suggestion: Suggestion | None
+    error_code: str | None
+    model_calls: int
+    tool_calls: int
+
+    @field_validator("started_at", "deadline_at", "finished_at")
+    @classmethod
+    def utc(cls, value):
+        return value.astimezone(timezone.utc) if value else None
+
+
+class TriageResponse(BaseModel):
+    ticket: TicketRead
+    attempt: AttemptRead
+
+
+class AttemptPage(BaseModel):
+    items: list[AttemptRead]
+    total: int
+    limit: int
+    offset: int
