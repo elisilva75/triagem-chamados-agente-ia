@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture
-def database_url():
+def database_url(request):
     """Cria banco exclusivo; nunca limpa banco recebido do ambiente."""
     raw = os.environ.get("TEST_DATABASE_URL")
     if not raw:
@@ -30,6 +30,8 @@ def database_url():
     ):
         pytest.fail("TEST_DATABASE_URL deve apontar para PostgreSQL local portfolio_test*.")
     name = "portfolio_test_" + uuid4().hex
+    # JUnit registra somente o nome gerado, nunca URL/senha, para conferir isolamento.
+    request.node.user_properties.append(("isolated_database", name))
     admin = create_engine(url, isolation_level="AUTOCOMMIT", hide_parameters=True)
     with admin.connect() as connection:
         connection.exec_driver_sql(f'CREATE DATABASE "{name}"')

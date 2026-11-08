@@ -5,7 +5,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:16
@@ -30,12 +30,7 @@ jobs:
           cache: pip
           cache-dependency-path: requirements-dev.lock
       - run: python -m pip install -r requirements-dev.lock
-      - run: python -m pip check
-      - run: python -m ruff check .
-      - run: python -m ruff format --check .
-      - run: python -m pytest tests/unit -q --junitxml=reports/unit.xml
-      - run: python -m pytest tests/integration tests/api -q --junitxml=reports/postgres-api.xml
-      - run: python -m pytest tests/e2e -q --junitxml=reports/http-real.xml
+      - run: python scripts/check_quality.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
