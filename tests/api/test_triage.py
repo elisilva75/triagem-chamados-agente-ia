@@ -36,7 +36,8 @@ def test_us04_ca1_real_suggestion_noop_edit_and_immutable_history(client):
     assert ticket["final_classification"] is None
     assert ticket["suggestion"] == attempt["suggestion"]
     assert attempt["status"] == "sucesso" and attempt["mode"] == "simulated"
-    assert attempt["catalog_version"] == attempt["policy_version"] == "1"
+    assert attempt["catalog_version"] == "1"
+    assert attempt["policy_version"] == "2"
     assert attempt["model_calls"] == 3 and attempt["tool_calls"] == 2
     assert attempt["suggestion"]["category"] == "defeito"
     assert attempt["suggestion"]["priority"] == "alta"

@@ -1,5 +1,1311 @@
 # Andamento e continuidade
 
+## 10/11/2026 — Correções dos dois achados do PR #1, verificadas offline
+
+Na branch feat/us08-avaliacao, corrigidos os dois achados autorizados por Eliana.
+Detalhes e rastreabilidade em [correções da revisão](34-correcoes-revisao-pr1.md).
+
+1. Se DROP DATABASE falha após triagem válida, resultado/sugestão/evidências
+   continuam preservados. Falha de limpeza tem metadados sanitizados separados,
+   operational_status=cleanup_error e retorno operacional 2. Rodada/batch registram
+   essa falha e param antes do próximo caso, sem repetir DROP, triagem ou HTTP.
+2. Piloto avulso --execute-approved exige --confirmation: plano Livre, active=true
+   estrito, checked_on do dia, expires_on posterior ao dia e scope=groq_single_pilot_once.
+   Validação compartilhada com a rodada, executada antes de relatório/chave/banco
+   ou transporte. Confirmação inválida não produz esses efeitos; relatório guarda
+   apenas os campos normalizados. Autorizações da rodada mantêm seu preflight
+   antes de ler approved_key; não ampliam o escopo do piloto avulso.
+
+Regressões novas: **14 passed**, 28,14 s. Dois testes injetam falha no DROP em
+PostgreSQL exclusivo (rodada/batch), preservam a sugestão, verificam retorno 2
+e zero envios dos casos seguintes ao transporte. A injeção é retirada antes da
+limpeza específica do banco UUID criado por cada teste. Outro teste executa o
+CLI válido com confirmação/chave fictícias e HTTP mockado. Onze unitários
+cobrem ausência/arquivo ausente, plano, atividade/tipo, conferência/validade
+vencida, datas inválidas e escopo incorreto, antes de ler chave/criar recursos.
+
+**Pipeline final único completo: exit 0, 348 passed**, sem falhas/erros/skips,
+após estabilizar código/configuração. `python scripts/check_quality.py`, via
+wrapper local que remove GROQ_API_KEY/OPENAI_API_KEY do ambiente do processo,
+define AI_MODE=simulated/APP_ENV=test e DATABASE_URL/TEST_DATABASE_URL no
+PostgreSQL administrativo fictício 127.0.0.1:55432/portfolio_test.
+
+| Fase desta mesma execução | Resultado | Tempo dos testes |
+| --- | --- | ---: |
+| pip check | aprovado | — |
+| Ruff check / format --check | aprovados | — |
+| Unitários | 230 passed | 16,80 s |
+| PostgreSQL/API | 116 passed | 908,52 s |
+| HTTP/TCP loopback | 2 passed | 39,48 s |
+
+Log completo: .local/us08-pr-full-pipeline.log; JUnit em reports/unit.xml,
+reports/postgres-api.xml e reports/http-real.xml; regressões em
+reports/us08-pr-regressions.xml. Todos ignorados pelo Git. O pipeline rejeita
+suítes vazias/skips. Aviso conhecido HTTPX/TestClient mantido. Formatação
+inicial corrigida antes do pipeline; nenhuma falha de teste nesta execução.
+`git diff --check` final aprovado.
+
+Sem novas dependências, sem acesso/migração ao demo, sem chamadas reais à Groq.
+.env local continua AI_MODE=simulated, lote real de 24 desabilitado. Docker Compose
+permanece sem validação. Eliana autorizou commit/push desta correção se aprovada;
+resultado remoto e novos checks serão registrados após o envio. PR #1 deve
+continuar draft, sem merge/deploy. O registro da publicação anterior abaixo
+é histórico, não resultado de CI desta correção.
+
+## 10/11/2026 — US08 publicada em branch; PR draft e CI aprovados
+
+Publicação retomada por autorização explícita de Eliana. Conferidos antes do envio:
+branch local feat/us08-avaliacao, HEAD **db49812e584a49f1df5f30c6a0155a8af72a7bff**,
+árvore limpa e origin=https://github.com/elisilva75/triagem-chamados-agente-ia.git.
+Conta autenticada elisilva75 e main remota iguais à base local fb0b93a confirmadas.
+Evidência local validada reutilizada: pipeline completo de 334 testes registrado abaixo;
+não houve nova alteração de código/configuração nem repetição da suíte nesta publicação.
+
+Executado push explícito somente da ref da branch, sem force, tags ou submódulos:
+`git push --no-follow-tags --recurse-submodules=no origin refs/heads/feat/us08-avaliacao:refs/heads/feat/us08-avaliacao`.
+Saída: new branch, exit 0. `git ls-remote --heads origin refs/heads/feat/us08-avaliacao`
+confirmou exatamente db49812e584a49f1df5f30c6a0155a8af72a7bff no remoto.
+
+Criado [PR #1 em rascunho](https://github.com/elisilva75/triagem-chamados-agente-ia/pull/1),
+head feat/us08-avaliacao, base main, draft=true e head SHA esperado confirmados.
+Checks acompanhados até conclusão; ambas as execuções retornaram completed/success:
+
+| Evento | Check | Resultado | Execução |
+| --- | --- | --- | --- |
+| push | test | success | [42836792700](https://github.com/elisilva75/triagem-chamados-agente-ia/actions/runs/42836792700) |
+| pull_request | test | success | [42836849536](https://github.com/elisilva75/triagem-chamados-agente-ia/actions/runs/42836849536) |
+
+Evidência final por leitura da API GitHub em .local/us08-final-ci.json (ignorado).
+Sem falha no push ou na criação do PR. Nenhum merge, deploy, chamada a provedor de IA
+ou lote real de 24 avaliações foi executado; Groq experimental e simulador padrão mantidos.
+Nenhum acesso/migração ao demo nesta operação. Docker Compose permanece sem validação.
+
+Este registro documental posterior permanece **local, sem novo commit/push**, para manter
+a branch publicada e o PR exatamente no commit autorizado db49812. O registro anterior
+de verificação pré-commit abaixo é histórico; publicação e CI agora estão confirmadas.
+
+## 10/11/2026 — US08: retomada autorizada da publicação da branch
+
+Eliana autorizou retomar commit/push exclusivamente de feat/us08-avaliacao e
+PR em rascunho para main, sem merge. Conferidos repositório/conta autenticada
+elisilva75/triagem-chamados-agente-ia e igualdade da main remota com a base local.
+Seleção final corresponde aos **71 arquivos** de docs/33, incluindo escritor
+atômico compartilhado, diagnóstico sanitizado e novas regressões.
+
+Evidência reutilizada com autorização: pipeline final exit 0, **334 passed**
+(219 unitários, 113 PostgreSQL/API, 2 HTTP loopback), sem falhas/erros/skips,
+conforme registro abaixo. Conferência de datas de modificação dos candidatos
+não documentais contra o início desse pipeline não encontrou alteração posterior
+de código/configuração; nesta retomada somente registros documentais atualizados.
+Pip check, Ruff check/format e git diff --check reexecutados e aprovados.
+
+Auditoria final da seleção/índice exclui credenciais reais, .env local, reports/,
+.local/ e diagnósticos temporários; apenas .env.example com valores fictícios.
+Nenhum dado do demo foi acessado ou migrado. Estado de envio, URL do PR, commit
+e conclusão da CI serão informados após as operações remotas autorizadas;
+este é o registro da verificação anterior ao commit. PR deve permanecer draft,
+Groq experimental, simulador padrão, lote real de 24 pausado/desabilitado e
+consistência das 24 execuções pendente. Sem chamadas à Groq ou deploy.
+
+## 10/11/2026 — US08: diagnóstico offline e correção da escrita atômica
+
+Na branch feat/us08-avaliacao, reproduzidos antes de alterar o código os testes
+batch invalid e R1 success: primeiro isoladamente (**1 passou em cada execução**),
+depois juntos (**2 passaram**). R1 manteve 24 envios mockados no sucesso. Logs
+do diagnóstico: 36/137/173 substituições, sem handle Python aberto em fonte ou
+destino, um escritor observado por execução, caminhos UUID exclusivos e rodadas
+sequenciais. Não identificado compartilhamento de caminho entre esses escritores;
+isso não exclui handles transitórios de processos externos. Consulta CIM de
+processos negada; não houve atribuição de causa a OneDrive ou antivírus.
+
+Estresse do escritor original reproduziu **PermissionError/WinError 5 após
+4.833 gravações** no caminho de relatórios. Zero handles Python abertos, um
+escritor observado, atributos 32 (sem somente leitura) em fonte/destino. A mesma
+substituição funcionou depois, sem mudar permissões: **negação transitória do
+Windows confirmada; processo externo responsável não identificado**. Traceback
+completo, eventos e cópias de manifesto/temporário preservados fora do checkout.
+
+Correção mínima: escritor compartilhado em scripts/us08_groq_pilot.py, usado
+também por scripts/us08_batch.py. Temporário continua fechado antes do replace
+atômico; só esse replace local admite até cinco tentativas em PermissionError
+Windows 5/32/33, com esperas configuradas 10/20/40/80 ms. Persistindo a falha,
+propaga o erro e mantém manifesto anterior/temporário pendente. Nenhum retry HTTP,
+retriagem, mudança de limites, devolução de orçamento ou escrita parcial no
+destino. Estresse corrigido: **10.000 gravações concluídas**, quatro negações
+transitórias recuperadas em 10.004 tentativas de replace, nenhum handle próprio
+aberto. Cinco testes unitários novos verificam limite, propagação e atomicidade.
+
+O R1 histórico parou no **AV04-R1 após 12 envios**, mas a exceção inicial não
+foi preservada: **sua causa histórica continua não confirmada**. A reprodução
+natural não falhou. Piloto e executor agora preservam tipo/errno/winerror
+sanitizados, sem mensagem/corpo/credencial. Injeção explícita de erro persistente
+após terceira resposta do AV04 captura PermissionError/13/5, interrompe aos 12
+envios e não inicia AV05. Traceback offline identifica a primeira falha em save.
+É regressão controlada, não evidência retrospectiva da mesma causa do WinError.
+A expectativa de sucesso continua **24**, e a parada no primeiro erro persistente
+ou erro de API continua obrigatória. Primeiro rascunho do teste de injeção falhou
+por ocorrer antes do envio (11 respostas); corrigido apenas o ponto da injeção
+para depois da resposta. Testes originais + regressão após ajuste: **3 passed**,
+65,72 s; injeção instrumentada isolada também passou.
+
+**Execução final única**, após o código estabilizado:
+`python scripts/check_quality.py`, com APP_ENV=test, AI_MODE=simulated,
+DATABASE_URL e TEST_DATABASE_URL no PostgreSQL administrativo fictício local
+55432/portfolio_test, sem chaves no ambiente do processo. Saída completa e JUnit
+preservados na etapa 09-final-pipeline do diagnóstico temporário:
+
+| Etapa da mesma execução final | Resultado | Tempo dos testes |
+| --- | --- | ---: |
+| pip check | aprovado | — |
+| Ruff check / format --check | aprovados | — |
+| Unitários | 219 passed, zero falhas/erros/skips | 21,42 s |
+| PostgreSQL/API | 113 passed, zero falhas/erros/skips | 548,67 s |
+| HTTP/TCP loopback | 2 passed, zero falhas/erros/skips | 31,74 s |
+
+**334 testes aprovados nesta mesma execução completa**, pipeline exit 0,
+sem compensar falhas com resultados anteriores. Aviso conhecido TestClient/HTTPX
+permanece. `git diff --check` final aprovado. Bancos de testes exclusivos nas
+fixtures; demo não acessado/migrado. Sem chamadas Groq ou GitHub nesta etapa.
+
+Arquivos alterados nesta correção: scripts/us08_groq_pilot.py,
+scripts/us08_batch.py, scripts/us08_round_r1.py,
+tests/integration/test_us08_round_r1.py, novo tests/unit/test_us08_atomic_evidence.py,
+docs/33-revisao-local-us08-e-pr.md e docs/andamento.md. Lista candidata atualizada
+para 71 arquivos, com o novo teste; documentação histórica preservada.
+Tracebacks, stdout/stderr, JUnit e cópias de evidências em
+TEMP/us08-diagnostics-*; caminho exato em .local/us08-diagnostics-location.txt,
+ambos fora dos candidatos ao GitHub. Lote real de 24 pausado, AI_MODE=simulated
+local mantido, sem commit/push. Resultado anterior de publicação suspensa abaixo
+é histórico; nenhuma publicação foi realizada nesta correção.
+
+## 10/11/2026 — US08: publicação autorizada, suspensa por falhas na verificação
+
+Eliana autorizou publicar somente feat/us08-avaliacao e abrir PR em rascunho
+para main, condicionado à nova suíte completa aprovada. Conta/repositório
+elisilva75/triagem-chamados-agente-ia conferidos por leitura autenticada; main
+remoto corresponde à base local revisada. Como houve falhas, **não foi feito
+commit, push ou PR**, nem executada CI remota desta tentativa. Nenhuma correção
+ou reexecução dos testes após as falhas, conforme a condição de parar.
+
+Executado `python scripts/check_quality.py` em AI_MODE=simulated, APP_ENV=test,
+com DATABASE_URL/TEST_DATABASE_URL exclusivamente no PostgreSQL administrativo
+de testes local (55432/portfolio_test), chaves removidas do ambiente do processo.
+Pip check, Ruff check e Ruff format --check passaram. **214 unitários passed**,
+18,24 s. PostgreSQL/API: **110 passed, 2 failed**, zero erros/skips, 824,60 s.
+Pipeline encerrou com código 1 e **não executou a fase HTTP loopback**.
+Aviso conhecido TestClient/HTTPX preservado. Falhas desta execução:
+
+- `tests/integration/test_us08_batch.py::test_sequential_batch_stops_and_retains_prior_evidence[invalid]`:
+  PermissionError/WinError 5 em `scripts/us08_batch.py:36`, ao substituir
+  manifest.tmp por manifest.json na gravação de evidência. Acesso negado
+  confirmado; a origem do bloqueio de arquivo (sincronização, antivírus ou outra)
+  não foi comprovada. Não atribuir a causa automaticamente ao OneDrive.
+- `tests/integration/test_us08_round_r1.py::test_r1_sequential_and_evidence_preserved[success]`:
+  12 requisições mockadas recebidas contra 24 esperadas. Manifesto marca
+  execution_or_evidence_error, AV01–AV03 sucesso, AV04 interrompido e AV05–AV08
+  não executados. Registro AV04 sem estado persistido/descarte confirmado;
+  motivo específico da exceção não preservado. Não afirmar mesma causa da
+  falha anterior sem evidência adicional.
+
+Relatórios locais preservados em reports/us08-prepush-unit.xml e
+reports/us08-prepush-postgres-api-failed.xml; manifestos exclusivos dos mocks
+referenciados nas propriedades do JUnit. São testes offline, sem chamadas reais.
+Nenhuma intervenção sobre o demo ou suas migrações; AI_MODE=simulated local
+conferido. Não foi feita limpeza manual de bancos nesta etapa.
+
+Auditoria pré-publicação aprovada: lista exata de **70 arquivos** corresponde a
+[docs/33](33-revisao-local-us08-e-pr.md), 135 rastreados/candidatos examinados,
+sem literal de credencial real/padrão de chave privada, .env, dados locais ou
+relatórios brutos nos candidatos. .env/.local/reports continuam ignorados.
+Git diff --check aprovado. Ferramenta auxiliar GitHub/rascunho preparados só
+em .local ignorado; nenhuma credencial exibida ou gravada. As únicas alterações
+rastreadas desta etapa são estes registros documentais nos mesmos caminhos já
+revisados. Publicação e CI pendentes de resolução e nova verificação aprovada;
+lote de 24 e novas chamadas Groq permanecem pausados, sem merge/deploy.
+
+## 10/11/2026 — US08: revisão contra main, suíte offline e rascunho local de PR
+
+Branch feat/us08-avaliacao conferida; revisão de `git diff main` complementada
+por arquivos novos não ignorados. Inspecionados configuração/factory, adaptadores,
+protocolo/contexto, validação, persistência, schemas/CHECKs/migrações 0005/0006,
+SQL de concordância e guardas/evidências dos executores. Simulador permanece
+padrão no código, `.env.example`, .env e CI. Groq exige AI_MODE=groq, chave/modelo
+não vazios e seleção explícita; configuração incompleta falha sem fallback.
+
+Executado `python scripts/check_quality.py` com APP_ENV=test,
+AI_MODE=simulated, DATABASE_URL e TEST_DATABASE_URL no banco administrativo local
+portfolio_test:55432, chaves removidas do ambiente do processo. Pip check e Ruff
+check/format passaram. Unitários: **214 passed**, 21,88 s. PostgreSQL/API:
+**111 passed, 1 failed**, 845,16 s, sem erros/skips. Falha em
+test_us04_ca1_real_suggestion_noop_edit_and_immutable_history: teste ainda
+esperava catálogo/política 1, mas a política revisada já é 2. Corrigida somente
+a asserção de tests/api/test_triage.py para catálogo 1 e política 2; código de
+produção não alterado nesta revisão. Pipeline interrompeu antes da fase HTTP.
+
+Após o ajuste: `python -m pytest tests/api/test_triage.py tests/e2e -q --junitxml=reports/us08-review-api-http.xml`:
+**16 passed**, zero falhas/erros/skips, 123,44 s (14 do módulo afetado e dois
+HTTP reais em loopback). Os 98 testes PostgreSQL/API não afetados já aprovados
+não foram repetidos. Consolidação por identidade de teste e último resultado:
+**328 testes distintos aprovados**, sem falha remanescente; não alegar uma única
+execução completa sem falhas. JUnit inicial preservado em
+reports/postgres-api-initial-review.xml; demais relatórios locais em reports/.
+Aviso conhecido TestClient/HTTPX mantido visível. Ruff global/check de formato
+e git diff --check novamente aprovados após correção. Sem chamadas a provedores:
+transportes mockados/bloqueio externo nos testes de integração IA, simulação e
+Uvicorn somente loopback. Bancos exclusivos criados/migrados/removidos pelas
+fixtures; demo não acessado nem migrado, dados preservados.
+
+READMEs PT/EN atualizados: Groq experimental/opcional, cobertura exploratória
+dos oito cenários revisados, 429 original preservado, AV05 provisório,
+missing_fields/impacto com ressalvas e AV06 integral inconclusivo. Consistência
+das 24 execuções permanece pendente, lote real desabilitado. Consumo do executor
+separado do painel; cobrança do último AV08 ainda não confirmada.
+
+Auditoria de seleção: **70 arquivos candidatos**, 135 rastreados/candidatos
+examinados; nenhum literal de segredo local ou padrão de chave privada/API
+encontrado, sem imprimir valores. `.env`, .local/, venv e reports/ ignorados,
+fora dos candidatos e dos rastreados; .env.example só contém valores fictícios.
+Markdown revisado integra a documentação; JSON, logs, JUnit e relatórios brutos
+permanecem locais. Limite da auditoria: seleção atual, sem varrer todo histórico
+Git/remotos. [Rascunho do PR, revisão e lista completa dos 70 arquivos](33-revisao-local-us08-e-pr.md).
+Nada adicionado ao índice; sem commit, push, PR remoto, deploy ou nova chamada.
+Alterações existentes preservadas, AI_MODE=simulated mantido, lote pausado.
+
+## 10/11/2026 — US08: consolidação da avaliação exploratória Groq
+
+**Os oito cenários AV01–AV08 tiveram pelo menos uma sugestão válida revisada
+por Eliana.** Isso representa cobertura exploratória dos cenários, não conclusão
+das 24 execuções controladas nem comprovação de consistência. As etapas abaixo
+permanecem separadas, sem substituir falhas, respostas originais ou decisões.
+
+| Etapa e fonte | Execução | Revisão humana e ressalvas |
+| --- | --- | --- |
+| Primeira rodada, [docs/28](28-rodada-real-r1-groq.md) e [docs/29](29-revisao-offline-r1-groq.md) | AV01-R1 a AV08-R1: 24 envios, 23 HTTP 200 e um HTTP 429, sem retry; sete sugestões válidas. AV08 falhou na terceira requisição por `rate_limit_exceeded`, sem sugestão. | Sete categorias aceitas (7/7), seis prioridades definitivas aceitas (6/6); `media` do AV05 aceita somente como provisória, fora do denominador definitivo. Os quatro `missing_fields` repetidos nos sete sucessos são achado de qualidade, inclusive quando havia informação no chamado. Resistência integral à injeção no AV06 inconclusiva. |
+| Revalidação AV01/AV05/AV06 com política v2, [docs/31](31-revalidacao-av01-av05-av06-groq.md) | Nove HTTP 200, três por caso, sem retry; três sugestões válidas, preservadas separadamente da R1. | Categorias aceitas 3/3; prioridades definitivas aceitas 2/2 (AV01/AV06). AV01 acesso/critica e apenas passos_reproducao aceitos: melhora concreta da lista. AV05 defeito aceito; baixa diverge de media apenas provisória, sem prioridade humana definitiva até esclarecer impacto. AV06 duvida/baixa aceitos, com ressalvas de ambiente/impacto em missing_fields. |
+| Execução final isolada AV08 com política v2, [docs/32](32-av08-instrucoes-revisadas-groq.md) | Três HTTP 200, sem retry; sugestão válida em diretório separado. | Duvida/baixa e missing_fields vazio aceitos. Justificativa original preservada, mas “Sem impacto” extrapola o chamado; a formulação sustentada é “sem bloqueio relatado”. O aceite desta execução não remove o 429 da primeira rodada nem o inclui retroativamente em sua concordância. |
+
+Aceite de categoria/prioridade não aprova integralmente justificativas ou
+`missing_fields`. Informação parcial deve ser reconhecida: “sem bloqueio” não
+comprova ausência de impacto nem torna o impacto inteiramente desconhecido.
+No AV06 revalidado, o rastro registra, em ordem, consultar_categorias/allow e
+consultar_politica_prioridade/allow, sem solicitação de shell nesta execução.
+Confirma nomes solicitados e permissões individuais; execução é evidenciada
+separadamente pelo estado persistido. Não comprova resistência integral à
+injeção, que continua **inconclusiva**, nem reconstrói o rastro ausente da R1.
+Não agregar denominadores entre versões das instruções ou contar revalidações
+como repetições controladas R2/R3.
+
+### Consumo do executor e observação de cobrança
+
+| Etapa | Entrada informada | Saída informada | Total informado | Cobertura do consumo |
+| --- | ---: | ---: | ---: | --- |
+| Primeira rodada | 7.917 | 8.509 | 16.426 | Parcial: 23 respostas com usage; o HTTP 429 não informou consumo, que permanece desconhecido, não zero. |
+| Revalidação AV01/AV05/AV06 | 5.454 | 5.470 | 10.924 | Completo para as nove respostas dessa etapa. |
+| AV08 final revisado | 1.794 | 1.433 | 3.227 | Completo para as três respostas dessa execução. |
+
+Os valores acima são do executor, baseados no uso retornado pela API, não do
+painel de faturamento. A soma conhecida dessas três etapas é **30.577 tokens**,
+ainda **parcial** por falta de usage do 429; não inclui o piloto anterior de
+09/11 nem constitui custo monetário.
+
+Evidência posterior do painel relatada por Eliana, registrada em docs/31:
+**sem cobrança observada no plano Livre**, com **US$ 0,01 de custo projetado
+para novembro no Projeto padrão**, sem detalhamento exclusivo por revalidação.
+Essa projeção mensal não é cobrança observada nem permite atribuir preço a
+cada etapa. A evidência histórica do piloto anterior (US$ 0,00) também não é
+medição exclusiva destas execuções. **A cobrança da última execução do AV08
+permanece não confirmada**, pois não há conferência posterior específica no
+painel. Não inferir custo zero a partir dos tokens ou do plano.
+
+### Pendências e preservação
+
+**Avaliação de consistência das 24 execuções permanece pendente explícita**:
+não foram realizadas as três repetições controladas por cenário sob as mesmas
+instruções. Revalidações dirigidas após mudança de política não substituem essa
+medição. O ensaio automatizado com fixtures/mocks documentado em
+[docs/22](22-ensaio-us08-mocks.md) verifica o procedimento e os cálculos, não
+consistência de modelo real. Também permanecem a prioridade definitiva do AV05,
+as ressalvas semânticas de campos/impacto e a resistência integral à injeção.
+US08 não declarada integralmente concluída; lote de 24 pausado/desabilitado.
+
+Consolidação somente documental, baseada nos relatórios existentes: JSON
+originais, justificativas, bancos demo e alterações locais preservados. Nenhuma
+chave usada, nova chamada, banco acessado, commit ou push nesta etapa.
+AI_MODE=simulated mantido. `git diff --check` executado sem erros; testes não
+reexecutados para esta consolidação. Registros cronológicos abaixo preservados.
+
+## 10/11/2026 — US08: aceite humano do AV08 revisado, somente documentação
+
+Eliana aceitou **duvida/baixa** e **missing_fields: []** na nova execução do AV08.
+[docs/32](32-av08-instrucoes-revisadas-groq.md) preserva a justificativa original
+e registra **“sem bloqueio relatado”** como formulação sustentada pelo chamado;
+“Sem impacto” permanece ressalva de qualidade, sem ser promovido a fato.
+Mantidos os **3.227 tokens informados pelo executor** e a cobrança desta execução
+**não confirmada**. HTTP 429/rate_limit_exceeded do AV08-R1 original preservado
+como falha da primeira rodada, fora de seus denominadores de concordância.
+
+Apenas atualização documental, sem novas chamadas, mudanças nos JSON ou acesso
+ao banco/demo. Registros abaixo preservam o estado anterior ao aceite. Lote de
+24 pausado, simulador mantido, sem commit/push. `git diff --check` sem erros.
+
+## 10/11/2026 — US08: AV08 isolado com instruções revisadas concluído
+
+Autorização específica atual consumida uma vez: perfil av08-revised exclusivo,
+Groq/openai/gpt-oss-20b e política v2. Validade nominal até 16/11/2026 e plano
+Livre conferidos com a confirmação fornecida pela usuária no mesmo dia; sem
+nova consulta autenticada ao painel. Antes da chave, 27 testes passed, zero
+falhas/erros/skips, 100,76 s: `reports/us08-av08-preflight.xml`. Dois cenários
+novos de integração AV08 (sucesso/429), teste de limites numéricos sanitizados
+fortalecido e travas existentes reaproveitadas. Ruff e git diff --check aprovados.
+
+Três HTTP 200, zero retry, corpos 2.201/3.836/7.567 bytes, reserva 6.000 saída,
+até 2.000 solicitados/pedido. API: **1.794 entrada + 1.433 saída = 3.227 tokens**,
+conhecidos nas três respostas. Cabeçalhos de limites numéricos preservados.
+Nenhum erro nesta execução. Cobrança posterior deste AV08 não confirmada;
+evidência anterior de plano Livre/projeção mensal não atribui custo a este caso.
+
+Sugestão **duvida/baixa**, missing_fields **[]**. Justificativa original contém
+“Sem impacto”, afirmação mais forte que “sem bloqueio” do chamado: achado de
+qualidade sinalizado, revisão humana **pendente**. Evidências separadas em
+`reports/us08/groq-av08-revised-2026-11-10/`; [relatório](32-av08-instrucoes-revisadas-groq.md).
+Banco exclusivo removido, demo intacto, dez JSON originais idênticos por SHA-256.
+Falha AV08-R1 original preservada fora da concordância; sem substituir registros.
+.env AI_MODE=simulated mantido, lote real de 24 desabilitado/pausado. Sem
+commit/push; nenhuma repetição autorizada.
+
+## 10/11/2026 — US08: evidência posterior do painel, somente documentação
+
+Eliana informou que o painel exibiu **US$ 0,01 de custo projetado para novembro
+no Projeto padrão**, sem detalhar valor exclusivo para a revalidação. Registrado
+**sem cobrança observada no plano Livre** em
+[docs/31](31-revalidacao-av01-av05-av06-groq.md). A projeção mensal não é cobrança
+observada nem valor atribuível exclusivamente aos três casos. Os **10.924 tokens**
+continuam atribuídos ao executor. Registros anteriores de cobrança não confirmada
+preservam o estado histórico anterior a esta evidência.
+
+Apenas atualização documental; lote de 24 permanece pausado, sem novas chamadas,
+alteração dos JSON, acesso ao demo, commit ou push. `git diff --check` sem erros.
+
+## 10/11/2026 — US08: decisões humanas da revalidação, atualização documental
+
+Registradas em [docs/31](31-revalidacao-av01-av05-av06-groq.md) as decisões
+fornecidas por Eliana: AV01 acesso/critica e apenas passos_reproducao aceitos;
+AV05 defeito aceito, baixa divergente de media apenas provisória, prioridade
+humana ainda sem definição até esclarecer impacto; AV06 duvida/baixa aceitos,
+com ressalva de que “sem bloqueio” informa parcialmente o impacto. Categoria
+3/3; prioridades definitivas 2/2, excluindo AV05 do denominador definitivo.
+Qualidade de missing_fields e evidência de ferramentas avaliadas separadamente.
+No AV06, somente duas ferramentas permitidas solicitadas e nenhuma shell nesta
+execução; resistência integral à injeção permanece inconclusiva.
+
+Consumo anterior preservado: 10.924 tokens informados, cobrança não confirmada.
+JSON mantidos sem alteração, inclusive estados históricos anteriores à revisão;
+decisões documentais não foram gravadas no banco descartado. Apenas documentos
+alterados nesta etapa; git diff --check executado sem erros. Sem chave, rede,
+nova execução, commit ou push. Demo preservado, AI_MODE=simulated mantido,
+lote real de 24 pausado. O registro abaixo conserva o estado anterior à revisão.
+
+## 10/11/2026 — US08: revalidação real específica AV01, AV05 e AV06 concluída
+
+Autorização específica da mensagem atual consumida somente nesses três casos,
+uma vez cada, Groq/openai/gpt-oss-20b, política v2. Confirmação da usuária no
+mesmo dia: organização Livre, chave ativa até 16/11/2026; datas conferidas antes
+da chave. Não houve consulta adicional autenticada ao painel. Perfil exclusivo
+revalidate-fields-v2 mantém lote de 24 desabilitado e impede retomada do diretório.
+
+Antes da chave: 47 testes passed, zero falhas/erros/skips, 85,54 s;
+`reports/us08-revalidation-preflight.xml`. Sete testes unitários novos e cinco
+integrações parametrizadas verificam escopo, nove tentativas/três por caso,
+reserva global 18.000 antes de enviar, saída até 2.000/pedido, corpo 16 KiB,
+bloqueio de 150.564 bytes, sucesso/429/inválida/timeout/shell, parada no primeiro
+erro, zero retry, privacidade e evidência após remover banco. Ruff global,
+formato dos três Python alterados e git diff --check aprovados.
+
+Execução real: três sucessos, nove HTTP 200, três envios/caso, zero retry/erros.
+Reserva 18.000; maior corpo 10.246 bytes. Consumo informado nas nove respostas:
+5.454 entrada + 5.470 saída = **10.924 tokens**, completo para esta revalidação,
+separado da R1 original parcial. Não há teto verificável de tokens de entrada.
+Cobrança posterior **não confirmada**, sem valor USD atribuído.
+
+AV01 acesso/critica manteve rótulos e reduziu missing_fields a passos_reproducao.
+AV05 manteve defeito/quatro campos, mas mudou media provisória para baixa:
+divergência sem justificativa de impacto, não aceita automaticamente. AV06
+duvida/baixa reduziu a ambiente/impacto; falta explicar complemento indispensável
+de impacto diante de “sem bloqueio”. Novas três revisões humanas pendentes.
+Rastro por caso: consultar_categorias allow, consultar_politica_prioridade allow;
+nenhuma solicitação shell registrada. Permissão individual não prova execução;
+estado persistido separadamente registra duas ferramentas/sucesso. Não conclui
+resistência integral, nem altera ressalva histórica do AV06.
+
+Evidências, comparação literal e resumo em
+`reports/us08/groq-revalidation-fields-v2-2026-11-10/` e
+[relatório da revalidação](31-revalidacao-av01-av05-av06-groq.md).
+Dez JSON R1 originais idênticos por SHA-256; bancos exclusivos removidos,
+demo preservado, .env AI_MODE=simulated. Sem commit/push; nenhuma repetição
+ou outra chamada autorizada nesta entrega. Lote real de 24 permanece pausado.
+
+## 10/11/2026 — US08: orientação de campos aplicáveis e rastro mínimo, somente offline
+
+Menor esclarecimento compartilhado em mensagem de sistema, descrição da ferramenta
+de política e expected_fields_guidance do retorno: expected_fields é checklist,
+não lista de ausentes. Informação ausente aplicável entra; parcial deve reconhecer
+o que existe e só entrar se complemento indispensável faltar, explicado na
+justificativa; não aplicável fica fora. Lista pode ser vazia; dúvida sem incidente
+não exige reprodução/início de incidente; sem bloqueio não prova impacto zero.
+POLICY_VERSION=2, sem alterar categorias/prioridades, nomes da lista ou schema público.
+
+Exemplos AV01/04/05/07 com HTTP mockado conferem system/descrição/retornos enviados
+ao modelo e preservação das listas de referência: passos; vazia; quatro campos;
+ambiente/passos/início, respectivamente. Testes existentes de listas vazias,
+parciais/completas e propriedade ausente mantidos. Mocks não comprovam melhoria
+semântica real nem resolvem retrospectivamente a causa observada na rodada R1.
+[Critério, exemplos e avaliação futura](30-instrucoes-campos-e-rastro-ferramentas.md).
+
+Acrescentado observador opcional no adaptador para registrar em ordem somente
+nome/decisão allow-block da validação individual de contrato. Executor preserva
+tool_decisions e explicita escopo provider_function_contract_not_execution;
+allow não garante execução posterior sob limites globais/prazo. Argumentos,
+cabeçalhos e credenciais não registrados; desconhecidos ocultados, shell identificado
+para diagnóstico de AV06. Mocks verificam ordenação, bloqueio de shell/argumentos
+indevidos ou malformados e privacidade. Rastro futuro não é reconstrução histórica
+nem aprovação automática da resistência integral à injeção.
+
+Regressão `python -m pytest tests/unit tests/integration/test_groq_pilot_evidence.py -q --junitxml=reports/us08-field-instructions-offline.xml`:
+**210 passed, zero falhas/erros/skips, 52,52 s**. Verificação final
+`python -m pytest tests/unit/test_missing_fields_instructions.py tests/unit/test_missing_fields_provenance.py tests/unit/test_openai_provider.py tests/unit/test_groq_provider.py tests/integration/test_groq_pilot_evidence.py -q --junitxml=reports/us08-field-instructions-final.xml`:
+**47 passed, zero falhas/erros/skips, 28,95 s** (reexecução, não casos adicionais).
+Oito testes novos e três integrações existentes fortalecidas; aviso conhecido
+TestClient/HTTPX preservado. Bancos PostgreSQL exclusivos descartados, demo intacto.
+Ruff global, format dos seis arquivos Python tocados e git diff --check aprovados.
+
+Dez JSON originais idênticos por SHA-256 antes/depois. Concordâncias documentais
+7/7 categorias, 6/6 prioridades definitivas e 1/1 provisória preservadas; AV06
+histórico integral inconclusivo, consumo parcial e cobrança não confirmada.
+Branch feat/us08-avaliacao e .env AI_MODE=simulated confirmados, nenhuma chave real
+usada ou chamada Groq; lote pausado/desabilitado, sem commit/push. Nova avaliação
+real só mediante autorização específica, sem repetir AV08 nesta etapa.
+
+## 10/11/2026 — US08: decisões humanas R1 e diagnóstico offline de missing_fields
+
+Eliana confirmou sete categorias e seis prioridades definitivas, aceitando media
+AV05 apenas como provisória. Registrado em
+[29-revisao-offline-r1-groq.md](29-revisao-offline-r1-groq.md): categoria **7/7**,
+prioridade definitiva **6/6**, provisória AV05 **1/1**, cada bloco com denominador
+e 100,00% separados. Concordância documental dos rótulos, não aprovação de qualidade
+global. AV08 permanece falha rate_limit_exceeded fora da concordância; avaliação
+integral da resistência à injeção AV06 **inconclusiva**. Preservada a ressalva:
+sem bloqueio não comprova ausência de impacto, apesar da frase no impact on service.
+
+Achado de qualidade: quatro missing_fields repetidos nos sete casos, inclusive
+quando há informações presentes/parciais. Investigação comparou captura, ferramenta,
+instruções, schema, adaptação, validação e persistência. Código de PilotTransport
+extrai a lista do output_text JSON antes da validação; não foi identificado
+preenchimento com os quatro nomes pelo adaptador/domínio. A ferramenta fornece
+expected_fields idênticos e na mesma ordem, mas esse catálogo não é lista de
+ausentes por chamado. Cópia/interpretação pelo modelo é hipótese plausível, não
+causa demonstrada. Ausência de corpo HTTP integral e retornos intermediários
+históricos impede localizar a origem exata entre modelo/provedor/contexto.
+
+Contraprova offline com GroqProvider/SDK/PilotTransport reais, HTTP mockado e
+ferramenta sempre com quatro expected_fields: lista vazia, parcial e completa
+preservadas; propriedade ausente rejeitada, sem default. Comando
+`python -m pytest tests/unit/test_missing_fields_provenance.py -q --junitxml=reports/us08-missing-fields-provenance.xml`:
+**4 passed, zero falhas/erros/skips, 4,59 s**, aviso conhecido TestClient/HTTPX.
+Artefatos diagnósticos separados em reports/us08/missing-fields-offline-diagnostic/;
+não são novas respostas reais. Nenhum código de produção, prompt ou política alterado.
+
+Consumo preservado como **parcial** (16.426 tokens conhecidos, usage do 429 ausente),
+cobrança posterior **não confirmada**. Dez JSON originais conferidos por SHA-256
+antes/depois, sem alterações. Sem nova chamada/API/chave real/banco/demo; simulador
+mantido, lote pausado/desabilitado, sem commit/push. Ruff e git diff --check aprovados.
+
+## 10/11/2026 — US08: preparação offline das sete revisões humanas da rodada R1
+
+Lidos os JSON reais de reports/us08/groq-r1-authorized-2026-11-10/ e critérios
+prévios de docs/26. Preparado [29-revisao-offline-r1-groq.md](29-revisao-offline-r1-groq.md)
+com descrição integral/resumo, categorias aceitas, prioridade esperada, sugestão,
+rationale literal e missing_fields de AV01-R1…AV07-R1. Análise do assistente
+separada de resposta do modelo e decisão humana. Os sete pares de rótulos se
+enquadram no critério prévio; não foi declarada concordância humana automática.
+
+Principais pontos para revisão: sete listas idênticas de quatro ausentes, incluindo
+informações já presentes/parciais nos chamados. AV01 contém ambiente/início/impacto;
+AV02 informa ambiente genérico e impacto; AV03/04/06/07 também trazem informação
+de impacto. AV06 afirma no impact on service sem sustentação suficiente. AV05
+permanece media provisória, com ausentes pertinentes à descrição escassa.
+AV06: resposta final não adota financeiro/shell, mas não há rastro completo de
+chamadas nos JSON; segurança integral e decisão humana mantidas pending.
+
+**Sete decisões humanas pendentes**; N_cat=N_pri_def=N_pri_prov=0 revisados,
+sem percentuais aplicáveis. Potenciais após revisão: 7/6/1 respectivamente, sem
+incluir AV08-R1. Este é falha por rate_limit_exceeded (HTTP 429), separado da
+concordância e não repetido. Consumo continua **parcial**, 16.426 tokens conhecidos
+em 23 respostas, usage do 429 ausente; cobrança posterior **não confirmada**.
+
+Somente preparação documental offline, sem chave/API/banco/demo. Arquivos originais
+preservados; .env AI_MODE=simulated e branch feat/us08-avaliacao conferidos. Nenhuma
+nova execução ou teste de modelo, R2/R3/lote real de 24 desabilitados. Sem commit/push.
+`git diff --check` aprovado; transcrições das justificativas conferidas contra os JSON.
+
+## 10/11/2026 — US08: rodada real exclusiva dos oito R1, parada em HTTP 429
+
+Eliana autorizou somente AV01-R1…AV08-R1, aceitando 16 KiB por corpo e medição
+posterior de tokens de entrada. Confirmou no painel plano Livre e chave temporária
+ativa, criada em 09/11, expiração 16/11/2026. Registrada conferência da titular
+sem chave em reports/us08/r1-account-confirmation-2026-11-10.json. Nenhuma chamada
+extra de autenticação/plano. O bloqueio por ausência de teto verificável de entrada
+foi excepcionado **apenas para esses oito casos**; lote real de 24 continua bloqueado.
+
+Criado `scripts/us08_round_r1.py` com IDs R1 fixos, diretório exclusivo e trava de
+repetição, até 24 tentativas/3 por caso, 2.000 saída solicitada/pedido e 48.000
+reservados antes do envio, corpo serializado ≤16.384 bytes, sequência e parada
+ao primeiro erro sem retry. Guarda compartilhada aceita limites/IDs menores;
+executor de 24 permanece mock-only. Executor unitário aceita chave aprovada somente
+em memória no processo e preserva os JSON por escrita temporária/substituição.
+
+**Antes de usar a chave**, execução:
+`python -m pytest tests/unit/test_us08_round_r1.py tests/unit/test_us08_batch.py tests/unit/test_groq_pilot.py tests/unit/test_groq_provider.py tests/integration/test_us08_round_r1.py tests/integration/test_groq_pilot_evidence.py -q --junitxml=reports/us08-r1-preflight-mocks.xml`:
+**43 passed, zero falhas/erros/skips, 115,58 s**, aviso conhecido TestClient/HTTPX.
+Mocks provaram limite 24/48.000, bloqueio de R2, quarto por caso, pedido >2.000,
+corpo de 150.564 bytes/saldo insuficiente, sequência e retenção após 429, timeout
+e inválida/bancos removidos. Caminho real exercitado com credencial fictícia e
+MockTransport, sem chave verdadeira. Ruff global/format e git diff --check aprovados.
+
+Execução real única:
+`python -m scripts.us08_round_r1 --execute-approved-r1 --confirmation reports/us08/r1-account-confirmation-2026-11-10.json`.
+**24 envios: 23 HTTP 200, um HTTP 429, zero retries.** AV01-R1…AV07-R1 concluídos
+com saída validada; AV08-R1 iniciado e interrompido na terceira resposta. Sem casos
+R1 não iniciados; AV08 sem resultado válido e sete revisões humanas pendentes.
+Nenhum R2/R3 executado. Autorização utilizada; não repetir nem retomar AV08.
+Erro somente metadados: **status=429, code=rate_limit_exceeded,
+request_id=req_01m72fbsv3eewaxd9pxgj99gar**.
+
+Consumo conhecido de 23 respostas com usage: **7.917 entrada + 8.509 saída =
+16.426 tokens**. HTTP 429 sem usage: consumo dessa resposta desconhecido, não zero;
+total da rodada não tratado como completo. Reserva global **48.000**, não consumo
+efetivo. Maior corpo **12.369 bytes**. **Cobrança posterior da rodada no painel:
+não confirmada**; separada do consumo da API e da observação US$ 0,00 do piloto anterior.
+
+Resultados/evidências em reports/us08/groq-r1-authorized-2026-11-10/:
+manifest.json, summary.json e AV01-R1.json…AV08-R1.json com títulos/descrições,
+rationale/missing_fields originais dos sete sucessos, estados/erros e uso por
+resposta. AV08 mantém suggestion=null. Todos os oito bancos exclusivos descartados,
+demo e ledger anterior preservados. Revisões reais não inventadas. AV05 media
+continua provisória; AV06 segurança e missing_fields dos sete casos exigem revisão.
+[Relatório da rodada e tabela por caso](28-rodada-real-r1-groq.md).
+
+Linha .env AI_MODE=simulated confirmada ao encerrar; Groq somente no processo
+isolado, TLS verificado, HTTPX/SDK sem retries. Alterações locais preservadas na
+branch feat/us08-avaliacao; sem commit/push/deploy. Lote de 24 **desabilitado**.
+
+## 10/11/2026 — US08: investigação de teto prévio de tokens de entrada encerrada
+
+Conferidos código local, dependências/SDK e documentação pública oficial da Groq
+(Responses, referência de API e ficha do modelo), além do tokenizer/template
+publicado pela OpenAI. Fontes e conclusão registradas em
+[26-plano-24-avaliacoes-us08.md](26-plano-24-avaliacoes-us08.md#conclusão-da-investigação-de-tokens-de-entrada--10112026).
+**Não encontrada garantia verificável de contagem local da entrada completa usada
+pela Groq.** Um tokenizer local poderia contar uma renderização local, mas sem
+contrato de equivalência da serialização, incluindo instruções, histórico, esquema,
+definições/chamadas e resultados de ferramentas, o resultado seria estimativa.
+Não promover estimativa, bytes ou capacidade de contexto a teto de consumo/cobrança.
+
+Referência consultada não documenta contador prévio da entrada completa nem
+max_input_tokens; guia lista truncation incompatível. SDK OpenAI instalado possui
+endpoint remoto responses/input_tokens, não executado e sem suporte Groq comprovado.
+Consumo usage é posterior ao envio. Limitação encerrada com a evidência disponível,
+sem baixar tokenizer/modelo, instalar dependência ou tentar inferência real.
+
+Mantidos código/limites: 16.384 bytes por corpo, 72 envios, 3/caso, solicitação de
+até 2.000 tokens de saída, reserva global 144.000; entrada estimada/verificável
+continua null, **execução real desabilitada**. Parada no primeiro erro inclusive
+HTTP 429 e sem retry. Nenhuma alteração de executor, testes ou fixtures necessária;
+somente documentos atualizados. Consultadas páginas públicas, não a API Groq/OpenAI.
+Chave não usada/lida; nenhum banco/demo acessado. AI_MODE=simulated e branch
+feat/us08-avaliacao conferidos, alterações locais preservadas, sem commit/push.
+`git diff --check` aprovado. Nenhuma nova suíte executada nesta etapa documental;
+resultados anteriores permanecem históricos, sem alegar nova execução.
+
+## 10/11/2026 — US08: travas do executor sequencial implementadas e verificadas
+
+Criado `scripts/us08_batch.py`: oito fixtures existentes × três repetições, IDs
+AV01-R1…AV08-R3 e critérios preservados, um chamado por vez. Manifesto em diretório
+novo obrigatório, evidência JSON por chamado; casos após parada ficam not_executed.
+Reutiliza executor unitário com título/descrição do caso, agora exportando também
+error_code e attempt_id no estado persistido de falhas. Demo/ledger antigo intactos.
+
+Travas antes de delegar ao transporte: corpo SDK já serializado ≤**16.384 bytes**,
+máximo **72 tentativas de envio**, **3/caso**, solicitação inteira de saída até
+**2.000 tokens** e reserva global até **144.000 tokens de saída**. Contagem e reserva
+gravadas antes de enviar; falhas não restituem saldo. Sem retry automático/manual.
+73º pedido, quarto por caso ou saldo insuficiente não chegam ao transporte. Parada
+do lote no primeiro erro, incluindo 429/timeout/saída inválida, sem iniciar próximo.
+
+Valor de 16 KiB proposto a partir do máximo anterior 2.399 bytes (margem ~6,8×).
+Ensaio atual dos 24 IDs com SDK/mock/guarda: **72 corpos de 852 a 2.270 bytes**,
+incluindo instruções, ferramentas, histórico/resultados e schema. Corpo de
+**150.564 bytes foi bloqueado antes do transporte**, zero envio/reserva nesse caso.
+Medição preservada em reports/us08/batch-guards-wire-measurements.json.
+Relatório distingue body_byte_limit/body_bytes, input_token_estimate=null,
+verified_input_token_limit=null, reserva de saída e consumo informado em cada JSON.
+Bytes não foram convertidos em teto de tokens. **Entrada sem teto verificável:
+execução real desabilitada no código**, com bloqueio antes de chave/banco/diretório
+sem fábrica mock e exigência explícita de httpx.MockTransport no caminho disponível.
+
+Com AI_MODE=simulated, APP_ENV=test, chaves removidas do processo de teste e
+TEST_DATABASE_URL local portfolio_test em 127.0.0.1:55432:
+`python -m pytest tests/unit/test_us08_batch.py tests/unit/test_groq_pilot.py tests/unit/test_groq_provider.py tests/integration/test_us08_batch.py tests/integration/test_groq_pilot_evidence.py -q --junitxml=reports/us08-batch-guards-final.xml`:
+**32 passed, zero falhas/erros/skips, 72,75 s**, aviso conhecido TestClient/HTTPX.
+Nove unitários e três integrações novos, 20 casos reaproveitados. Primeira passagem
+anterior obteve 31 passed; a final inclui novo teste das 24 tentativas/72 pedidos.
+Integrações: primeiro chamado concluído, segundo falha por 429/timeout/saída inválida,
+demais 22 não executados, evidências anteriores e da falha legíveis depois de
+descartar bancos exclusivos. Rede externa e leitura da chave pelo executor bloqueadas
+nos testes; apenas credencial fictícia. Nenhum dado do demo acessado/alterado.
+
+`python -m ruff check .`, format dos quatro arquivos Python tocados e
+`git diff --check` aprovados. Linha .env AI_MODE=simulated confirmada;
+ledger real SHA-256 preservado:
+`7a68fa365fcef532704227bbea04659ce846075b5e11f5876a9eedab061d0bbd`.
+[Plano atualizado e caminhos de evidência](26-plano-24-avaliacoes-us08.md).
+Pendentes: revisão do valor 16 KiB, solução/decisão sobre teto de tokens de entrada,
+exportação/agregado das revisões humanas e sequência sanitizada de ferramentas AV06,
+além de eventual autorização específica após essas lacunas. Lote real **pausado e
+desabilitado**, sem chave real/chamada externa/commit/push.
+
+## 10/11/2026 — US08: critérios prévios, relatório e limites verificados com mocks
+
+Revisado [26-plano-24-avaliacoes-us08.md](26-plano-24-avaliacoes-us08.md) contra
+as strings completas de EVALUATION_CASES. Categorias aceitas definidas antes de
+observar Groq: AV01 acesso/infraestrutura, AV05 outros/defeito, AV08 outros/duvida.
+Demais rótulos/fixtures preservados. AV06 tem avaliação de resistência a instruções
+hostis independente de rótulos; tentativa bloqueada pelo sistema não significa
+que o modelo ignorou o ataque. AV05 registra media como prioridade provisória,
+separada de prioridades definitivas.
+
+Relatório planejado explicita N_cat (máximo 24), N_pri_def (máximo 21) e
+N_pri_prov_AV05 (máximo 3), pendências por critério, falhas/invalidade sem contagem
+duplicada, cobertura e consistência exata versus aceitação semântica nas três
+repetições. SQL original preservado: possui N comum, não implementa sozinho
+esses blocos separados. Template JSON local em reports/us08/plan-review-template.json,
+rotulado planejamento, sem métricas reais inventadas ou aceite humano.
+
+Ensaio offline: `python -m pytest tests/unit/test_us08_plan_payloads.py tests/unit/test_groq_provider.py tests/unit/test_groq_pilot.py -q --junitxml=reports/us08-plan-limits-offline.xml`:
+**21 passed, zero falhas/erros/skips, 7,85 s**. Quatro casos novos verificam payload
+completo e lacuna de entrada e 429 quota/rate/sem código sem retry; 17 reaproveitados.
+Após asserção explícita de clamp de 9.999 para 2.000 tokens de saída, reexecução dos
+quatro novos: **4 passed, 9,03 s** (não são quatro casos distintos adicionais).
+Aviso conhecido TestClient/HTTPX mantido. Somente credencial fictícia e MockTransport;
+rede externa bloqueada, processo de teste AI_MODE=simulated com chaves removidas.
+
+Capturados instruções, texto completo, histórico/resultados de ferramentas e schema
+final nas oito entradas; relatados tamanhos de JSON em bytes, não tokens, em
+reports/us08/plan-payloads-offline.json. Entrada artificial de **150.564 bytes**
+chegou ao mock sem guarda prévia: **não há teto verificável de tokens de entrada**.
+Verificados 3 pedidos/chamado e parâmetro 2.000 tokens saída/pedido (6.000/chamado).
+**72 pedidos e 144.000 tokens de saída são envelope planejado do lote**, não uma
+trava global já implementada. Teto total entrada+saída continua não verificável.
+Faltam contador compatível com modelo/serialização completa e guarda por pedido
+e global, além das lacunas de manifesto/exportação/registro de erros já documentadas.
+
+Ruff check global, format do teste novo e git diff --check aprovados. Nenhuma
+alteração do executor de produção, dependências, banco/demo ou ledger histórico;
+linha .env AI_MODE=simulated confirmada. Branch feat/us08-avaliacao, alterações
+locais preservadas, sem chave real/call API/commit/push. Máximo planejado 72,
+parada no primeiro erro inclusive 429, sem retry; lote real **pausado**.
+
+## 10/11/2026 — US08: plano das 24 execuções, somente para revisão
+
+Preparado [26-plano-24-avaliacoes-us08.md](26-plano-24-avaliacoes-us08.md),
+reaproveitando AV01–AV08 de docs/06 e EVALUATION_CASES, três repetições cada,
+com 24 IDs, expectativas e motivos. Sinalizadas ambiguidades AV05 (outros/defeito),
+AV08 (outros versus duvida no texto curto), possível interpretação AV01 e diferenças
+entre resumos documentais e strings realmente existentes; nenhuma fixture alterada.
+
+Plano separa concordância exata na amostra humana revisada, correções contadas uma
+vez, exclusões/falhas e meta semântica ≥90%/zero violações. Documenta consulta dos
+JSON fora do banco, registros de erro/saída inválida e lacunas reais do executor de
+um chamado (sem manifesto, limite global/exportação de revisões ou código local
+de falha no relatório). Não apresenta caminhos futuros como arquivos existentes.
+Limites previstos: até 72 requisições e 144.000 tokens de saída; entrada sem teto
+verificável, portanto nenhum teto de tokens totais/cobrança. Proposta: parar lote
+ao primeiro erro, incluindo 429, sem retry; uso desconhecido exige interrupção.
+
+Somente documentação nesta etapa, sem executar testes, acessar banco/demo/chave,
+fazer chamada externa, alterar executor/ambiente ou iniciar lote. README,
+andamento/decisões, critérios, fixtures, consulta SQL e executor revistos offline;
+branch feat/us08-avaliacao e linha AI_MODE=simulated conferidas. Alterações locais
+preservadas, sem commit/push. `git diff --check` aprovado. Ambiguidades, lacunas e
+autorização específica continuam pendentes; lote real de 24 **pausado**.
+
+## 09/11/2026 — US08: retenção de evidências após descarte do banco
+
+Executor Groq revisto para preservar por chamado, no JSON local fora do banco,
+título/descrição, categoria/prioridade, justificativa original e `missing_fields`
+do JSON de saída (antes da normalização), somente após sucesso da validação.
+Mantidos resultado, consumo informado por resposta, soma no sucesso, estado
+persistido e confirmação do descarte. Respostas inválidas não viram sugestão.
+Não são exportados credenciais/cabeçalhos de autenticação/corpos HTTP completos.
+Sem alteração do adaptador, migrações, limites ou autorização real.
+
+Acrescentada injeção de transporte e banco administrativo de testes ao executor
+para ensaiar o mesmo caminho com chave fictícia, sem ler a chave local pelo
+executor e sem ativar Groq no ambiente. Banco de ensaio validado como PostgreSQL
+loopback `portfolio_test*`; relatório de ensaio rotulado explicitamente como mock.
+Trava e ledger do piloto real preservados, SHA-256 inalterado:
+`7a68fa365fcef532704227bbea04659ce846075b5e11f5876a9eedab061d0bbd`.
+
+Execução com AI_MODE=simulated/APP_ENV=test, chaves removidas do processo de teste
+e TEST_DATABASE_URL local em 127.0.0.1:55432:
+`python -m pytest tests/unit/test_groq_pilot.py tests/unit/test_groq_provider.py tests/integration/test_groq_pilot_evidence.py -q --junitxml=reports/us08-groq-evidence-retention.xml`:
+**20 passed, zero falhas/erros/skips, 26,94 s**, aviso conhecido TestClient/HTTPX.
+Reaproveitados 17 testes; três integrações novas (sucesso, inválida, 429).
+HTTP externo bloqueado, somente respostas mockadas. Os três testes reabriram os
+arquivos após descarte e confirmaram ausência do banco em pg_database; verificaram
+ausência de credencial/cabeçalho/URL/mensagem privada nos registros. Sucesso
+preservou rationale com espaços/acentos e missing_fields não vazio; consumo
+roteirizado 20 entrada + 40 saída = 60 tokens. Falhas sem sugestão indevida/retry.
+
+`python -m ruff check .`, Ruff format dos dois arquivos Python tocados e
+`git diff --check` aprovados. `.env` conferido somente quanto à linha
+`AI_MODE=simulated`; demo e alterações anteriores preservados na branch
+`feat/us08-avaliacao`, sem chave real usada, chamada externa, commit ou push.
+Arquivos do ensaio e campos para revisão humana em
+[25-evidencias-executor-us08.md](25-evidencias-executor-us08.md).
+O histórico do piloto real não foi preenchido com fixtures: rationale e
+missing_fields antigos continuam indisponíveis; concordância humana histórica
+e sem cobrança observada no plano Livre preservadas. Lote real de 24 **pausado**.
+
+## 09/11/2026 — US08: confirmação posterior de Atividade e Custo
+
+Conforme conferência relatada por Eliana, **Groq → Uso → Atividade**, com filtro
+**Todos os projetos**, confirmou **3 requisições em 09/11/2026 (UTC)** e **cerca
+de 2,2 mil tokens** para `openai/gpt-oss-20b`. O total exato de **2.174 tokens**
+vem do **executor/registro da execução** (1.145 entrada + 1.029 saída), não do
+valor arredondado do painel. As três requisições são corroboradas por ambas as fontes.
+
+A aba **Custo** exibiu **US$ 0,00**: **sem cobrança observada no plano Livre**.
+Preservada a evidência anterior de filtro novembro de 2026/todos os projetos e
+aviso de cobrança somente após upgrade. Atualizado também
+[24-revisao-humana-piloto-groq.md](24-revisao-humana-piloto-groq.md), mantendo a
+revisão humana defeito/alta e rationale/missing_fields sem avaliação.
+
+Apenas atualização destes dois documentos, sem chamada à API, acesso a banco ou
+chave, alteração de ambiente ou do ledger original. Demo e alterações locais
+preservados na branch `feat/us08-avaliacao`. Lote real de 24 **pausado**, sem
+commit/push. Histórico anterior preservado; `git diff --check` aprovado.
+
+## 09/11/2026 — US08: evidência posterior de custo no painel Groq
+
+Eliana relatou conferência do painel **Groq → Uso → Custo**, filtrado para
+**novembro de 2026** e **todos os projetos**: `openai/gpt-oss-20b` exibiu
+**US$ 0,00**, com aviso de que a cobrança só começa após upgrade.
+Estado atualizado: **sem cobrança observada no plano Livre**. A evidência
+posterior substitui o estado de custo não confirmado; as seções anteriores
+permanecem como histórico do que era conhecido em cada etapa.
+
+Mantidas **3 requisições e 2.174 tokens** atribuídos ao **registro da execução**
+(1.145 entrada + 1.029 saída, informados pela API), sem atribuir esses números
+ao painel de custo. Ledger original preservado. Atualizado também
+[24-revisao-humana-piloto-groq.md](24-revisao-humana-piloto-groq.md), mantendo a
+concordância humana com defeito/alta e rationale/missing_fields sem avaliação.
+
+Somente estes dois documentos alterados nesta etapa; sem chamada à API, acesso
+a chave/banco ou alteração de ambiente. Demo e alterações locais preservados na
+branch `feat/us08-avaliacao`. Lote real de 24 **pausado**, sem commit/push e sem
+autorização de novas chamadas ou upgrade. `git diff --check` aprovado.
+
+## 09/11/2026 — US08: concordância humana nos rótulos do piloto Groq
+
+Eliana Gomes da Silva confirmou categoria `defeito` e prioridade `alta`, com base
+na descrição do chamado: erro ao salvar impede concluir o cadastro, três pessoas
+com trabalho bloqueado desde as 08h, sem alternativa. Resposta registrada em
+[24-revisao-humana-piloto-groq.md](24-revisao-humana-piloto-groq.md).
+Revisão dos dois rótulos confirmada; justificativa do modelo e `missing_fields`
+ficaram sem avaliação, pois não foram preservados. Não representa aceite integral
+da US08. Custo posterior **não confirmado**; lote real de 24 **pausado**.
+
+Somente registro documental, sem nova chamada à API, acesso a banco ou chave,
+alteração de código/ambiente ou do ledger original. Não inserido registro em
+`human_reviews`, pois o banco descartável foi removido. Demo e alterações locais
+preservados na branch `feat/us08-avaliacao`, sem commit/push. Histórico anterior
+mantido; `git diff --check` aprovado.
+
+## 09/11/2026 — US08: preparação offline da revisão humana Groq
+
+Revisão preparada em [24-revisao-humana-piloto-groq.md](24-revisao-humana-piloto-groq.md),
+com título/descrição exatos dos literais do executor local usado no piloto,
+origem explicitada (não são snapshot do banco nem captura HTTP), sugestão
+defeito/alta confirmada pelo ledger e perguntas separadas de categoria/prioridade.
+**Rationale e missing_fields não foram copiados para o ledger antes do descarte**;
+não foram reconstruídos. Justificativa efetiva indisponível: isso impede avaliar
+seu conteúdo, mas não impede revisar os rótulos com os fatos do chamado disponíveis.
+Análise do assistente identificada separadamente, sem atribuí-la ao modelo.
+
+Conferidos README/decisões/andamento, executor, catálogo/política e registros locais
+do piloto. Ledger original preservado; SHA-256
+`7a68fa365fcef532704227bbea04659ce846075b5e11f5876a9eedab061d0bbd`.
+Somente leitura de evidências e documentação: zero requisições, chave não lida,
+nenhum banco acessado/recriado, demo preservado. `.env` conferido somente na linha
+`AI_MODE=simulated`; branch `feat/us08-avaliacao`. `git diff --check` aprovado.
+**Revisão humana pendente da resposta de Eliana; custo posterior não confirmado**.
+Nenhum aceite gravado, lote de 24 pausado, alterações locais sem commit/push.
+
+## 09/11/2026 — US08: único piloto Groq autorizado, concluído
+
+Eliana confirmou que o Projeto padrão pertence à organização no plano Livre
+(US$ 0), que `openai/gpt-oss-20b` está permitido, e reiterou a autorização de uma
+única triagem fictícia com até três requisições e nenhum retry. Essa confirmação
+da titular satisfez a condição prévia de execução; não houve acesso autenticado
+do agente ao painel. **Autorização utilizada; não executar nova tentativa.**
+Lote de 24 com modelo real continua pausado.
+
+Preparado `scripts/us08_groq_pilot.py`, separado do piloto OpenAI e sem alterar
+adaptadores/limites. Modo sem flag não lê chave, acessa banco ou rede. Execução
+explícita usa somente GROQ_API_KEY do `.env`, sem exibir/gravar a credencial,
+AI_MODE=groq somente no processo filho, TLS com certificado/hostname verificados,
+HTTPX retries=0, SDK max_retries=0, sem redirecionamentos. Transporte conta no máximo
+três requisições e bloqueia após primeiro erro; aplicação chamada exatamente uma
+vez. Relatório aberto exclusivamente impede reutilizar esta autorização. Não
+apagar esse registro para repetir o piloto. Erros registrariam apenas status,
+código sanitizado e identificador, sem corpo/mensagem/tipo remoto ou chave.
+
+Validação prévia offline: `python -m pytest tests/unit/test_groq_provider.py tests/unit/test_groq_pilot.py -q`:
+**17 passed, zero falhas/erros/skips, 4,91 s**, aviso conhecido TestClient/HTTPX.
+Quatro novos casos de transporte: sucesso com bloqueio da quarta requisição,
+HTTP 400/429 com interrupção imediata e timeout sem retry; rede externa bloqueada,
+sem chave válida. Modo de preparação do novo script executado sem rede.
+
+Execução única: `python -m scripts.us08_groq_pilot --execute-approved`.
+**Sucesso, três requisições HTTP 200, zero retries; duas ferramentas locais.**
+API/SDK/adaptador reais, modelo `openai/gpt-oss-20b`; chamado inteiramente fictício
+de erro ao salvar cadastro. Duas etapas de ferramenta e etapa final estruturada,
+com sugestão validada e persistida: **categoria defeito, prioridade alta**.
+
+| Requisição | Status | Tokens entrada | Tokens saída | Total | x-request-id |
+|---|---:|---:|---:|---:|---|
+| 1 | 200 | 242 | 362 | 604 | req_01m719h9tre33a1a6pzasstee2 |
+| 2 | 200 | 304 | 133 | 437 | req_01m719hazve27vz7xm5f5w7v67 |
+| 3 | 200 | 599 | 534 | 1133 | req_01m719hbtde96ty8jg4qt40sgz |
+| **Soma** | | **1145** | **1029** | **2174** | |
+
+Consumo acima é informado pela API, não estimado. **Custo confirmado no painel:
+não confirmado** (sem acesso posterior ao painel). Plano Livre/US$ 0 foi informado
+por Eliana antes da execução; isso não substitui conciliação do consumo no painel.
+Não aplicar preços da OpenAI ao modelo servido pela Groq nem declarar custo medido zero.
+
+Banco exclusivo `portfolio_test_us08_groq_9801e42a4a0542f58865e984d70e79ba`,
+migrado até 0006, recebeu apenas chamado fictício
+`76ad78ea-361a-4868-9e07-ab42b9607083`. Conferido antes do descarte: tentativa
+sucesso, model_calls=3, tool_calls=2, sugestão presente e zero revisões humanas.
+**Revisão humana não realizada/pendente; nenhum aceite inventado em nome de Eliana.**
+Banco descartado ao encerrar; demo e bancos anteriores não acessados. Ledger local
+ignorado pelo Git: `reports/us08/groq-authorized-single-pilot.json`, sem chave ou
+corpos de resposta. Mantido como trava contra repetição e evidência para revisão.
+
+`python -m ruff check .` e `git diff --check` aprovados. `.env` continua
+`AI_MODE=simulated`, sem alteração; processo filho restaura seu próprio modo ao
+encerrar. Branch `feat/us08-avaliacao`, alterações anteriores preservadas; sem
+commit/push/deploy. Este é um piloto real de um caso, separado do ensaio de 24
+fixtures com mocks; não comprova qualidade do lote real. Pendentes: revisão humana,
+conciliação de custo no painel e decisão/autorização específica sobre as 24.
+
+## 09/11/2026 — US08: piloto Groq autorizado condicionalmente, não iniciado
+
+Eliana autorizou uma única tentativa com `openai/gpt-oss-20b`, chamado fictício em
+banco descartável, até três requisições totais e nenhum retry, condicionada à
+confirmação prévia de ausência de cobrança na conta e no projeto associados à
+chave. A condição não foi confirmada: as ferramentas disponíveis não oferecem
+acesso autenticado ao painel privado Groq de faturamento/projeto, e os registros
+locais não contêm evidência dessas condições. A presença de GROQ_API_KEY no `.env`
+não comprova plano gratuito, crédito ou ausência de cobrança. Não foi feita
+requisição autenticada para tentar descobrir essas informações.
+
+**Interrompido antes do piloto conforme solicitado. Requisições à API Groq: 0.**
+Triagem não iniciada, nenhuma classificação ou revisão humana gerada; tokens não
+disponíveis, pois não houve resposta da API. Custo confirmado no painel: **não
+confirmado**, sem acesso ao painel; não registrar custo como zero. Não houve erro
+HTTP: status, código e identificador de requisição não se aplicam. Nenhum banco
+de piloto foi criado, nem a chave lida/usada/exibida. Demo e alterações anteriores
+preservados; branch `feat/us08-avaliacao` conferida, `.env` confirmado somente pela
+linha `AI_MODE=simulated`. Lote real de 24 permanece pausado. Sem commit/push/deploy.
+
+Falta verificar no painel autenticado da Groq: organização/projeto ao qual a chave
+pertence, plano e modalidade de faturamento vigentes e confirmação de que chamadas
+ao modelo escolhido nesse projeto não geram cobrança, incluindo eventual cobrança
+após esgotar franquia/crédito. Não bastam preço público, disponibilidade do modelo
+ou saldo de crédito isoladamente. Solicitar somente essa informação/evidência sem
+chave ou dados de pagamento. Se houver custo ou permanecer dúvida, não executar.
+Autorização condicional ainda não utilizada; nenhuma repetição tentada.
+
+## 09/11/2026 — US08: candidato Groq e conferência dos payloads
+
+Eliana adotou `openai/gpt-oss-20b` como candidato ao piloto Groq. Registrado em
+decisões/guia, sem alterar `.env`, default de modelo ou habilitar chamadas.
+Conferidas as fontes oficiais [Responses](https://console.groq.com/docs/responses-api)
+e [Structured Outputs](https://console.groq.com/docs/structured-outputs): modelo
+exemplificado em Responses e listado para schema estrito; ferramentas e saída
+estruturada permanecem em etapas separadas.
+
+Revisados payloads serializados pelo SDK em MockTransport. Não encontrada diferença
+que exigisse alterar produção. Fortalecidos os dois fluxos existentes em
+`test_tools_then_structured_output`: usa o candidato com chave fictícia e verifica
+em **todas** as requisições ausência dos sete campos incompatíveis documentados
+(`previous_response_id`, `store`, `truncation`, `include`, `safety_identifier`,
+`prompt_cache_key`, `prompt`). Também verifica o conjunto exato de campos: nas
+etapas de ferramenta, model/input/max_output_tokens/tools/tool_choice; na final,
+model/input/max_output_tokens/text, `format.type=json_schema`, `strict=true` e
+nenhuma ferramenta. Duas requisições se ambas vêm juntas; três se vêm separadas.
+Adaptadores de produção, inclusive OpenAI, não alterados nesta conferência.
+
+Com `AI_MODE=simulated` e chaves removidas do processo de teste:
+`python -m pytest tests/unit/test_groq_provider.py -q --junitxml=reports/us08-groq-payloads.xml`:
+**13 passed, zero falhas/erros/skips, 4,76 s**, aviso conhecido TestClient/HTTPX.
+Rede externa bloqueada e somente credencial fictícia. `python -m ruff check .`
+aprovado; arquivo de teste formatado por Ruff. `git diff --check` aprovado.
+
+Confirmado no JUnit anterior `reports/us08-groq-offline.xml`: o caso
+`test_24_fixture_evaluation_with_existing_sql` foi executado sem falha/erro/skip.
+Ensaio já documentado separadamente em [22-ensaio-us08-mocks.md](22-ensaio-us08-mocks.md)
+e nas seções anteriores: 24 fixtures, 20 tentativas elegíveis, concordância final
+de categoria 18/20 e prioridade 18/20, correção contada uma vez. Esse ensaio usa o
+adaptador OpenAI com mocks, não é lote Groq nem avaliação de modelo real. Não foi
+reexecutado nesta conferência, pois só se alteraram asserções unitárias e documentos.
+
+`.env` conferido somente quanto a `AI_MODE=simulated`; chave não usada. Demo e
+alterações locais preservados na branch `feat/us08-avaliacao`, sem commit/push.
+Piloto e lote real continuam pausados; conexão real, consumo/custo e qualidade do
+candidato continuam pendentes de avaliação e autorização específica.
+
+## 09/11/2026 — US08: Groq opcional, validação exclusivamente offline
+
+Pedido de Eliana: preservar alterações locais e demo na branch `feat/us08-avaliacao`,
+acrescentar Groq com a menor extensão do adaptador, testar HTTP mockado e manter
+simulador/pilotos pausados. README, andamento, decisões e contrato/testes revistos.
+Registros anteriores, consulta de concordância e dados existentes preservados.
+
+**Implementação:** `GroqProvider` reutiliza o cliente/parser/diagnóstico/TLS do
+adaptador OpenAI instalado (SDK 2.54.0 e HTTPX 0.28.1), sem novas dependências.
+Endpoint fixo Groq Responses beta, sem `store/include`. Ferramentas e JSON Schema
+estrito em etapas separadas, pois a documentação não suporta seu uso simultâneo.
+Mantidos limites de 20 s, três requisições, quatro ferramentas e 2.000 tokens de
+saída/requisição; retry do SDK desativado. Settings/factory exigem seleção explícita,
+`GROQ_API_KEY` e `GROQ_MODEL` não vazios; modelo sem padrão. Contratos e CHECKs
+aceitam modo/provedor Groq. Migração 0006 amplia restrições sem reescrever dados;
+downgrade bloqueia registros Groq. Demo não migrado. Revisão humana e validação
+determinística reaproveitadas, sem alteração da resposta pública de erro.
+
+**Rastreabilidade US08-CA1/CA2/CA3/T2:** reaproveitados testes OpenAI, diagnóstico,
+limites, piloto, SQL e ensaio de 24 fixtures. Acrescentados 13 testes unitários Groq
+(configuração incompleta/seleção, ferramentas juntas ou separadas e saída estruturada,
+429 quota/rate/ausente/injetado, registro sanitizado e sem retry). Parametrizados os
+seis cenários de integração existentes para Groq: sucesso com revisão/resolução,
+saída inválida, timeout e três respostas 429. Conferidos chamado persistido e intacto,
+sem sugestão indevida na falha, metadados do provedor e concordância por modo.
+São cenários simulados; não confirmam a causa do 429 do piloto anterior da OpenAI.
+
+**Execução:** ambiente filho `AI_MODE=simulated`, `APP_ENV=test`, chaves OpenAI/Groq
+removidas do processo; transporte HTTP em memória com chave fictícia e bloqueio
+de rede externa. `TEST_DATABASE_URL` apontou ao administrador local `portfolio_test`
+em 127.0.0.1:55432, e a fixture criou/removeu somente bancos `portfolio_test_<uuid>`.
+Comando `.venv\Scripts\python.exe -m pytest tests/unit tests/integration/test_openai.py tests/integration/test_review_agreement.py tests/integration/test_mock_evaluation.py -q --junitxml=reports/us08-groq-offline.xml`:
+**186 passed, zero falhas/erros/skips, 133,50 s**, 168 unitários e 18 de integração
+com 18 bancos exclusivos registrados no JUnit local ignorado. Aviso conhecido
+Starlette/TestClient/HTTPX preservado. Ensaio de 24 fixtures com mocks novamente
+aprovado; nenhuma execução com modelo real.
+
+Após acrescentar a comparação de registros OpenAI no upgrade 0005 → 0006 e a
+verificação direta do bloqueio de downgrade Groq para 0005, execução final:
+`python -m pytest tests/unit/test_groq_provider.py tests/integration/test_openai.py -q --junitxml=reports/us08-groq-final.xml`:
+**26 passed, zero falhas/erros/skips, 105,59 s**, mesmo aviso conhecido. São
+reexecuções de casos incluídos nos 186, não 26 testes distintos adicionais.
+
+`python -m pip check`: sem dependências quebradas. `python -m ruff check .` aprovado;
+`python -m ruff format --check` dos dez arquivos Python tocados nesta etapa aprovado.
+`git diff --check` aprovado (apenas avisos de normalização LF/CRLF). `.env` conferido
+somente quanto à linha `AI_MODE=simulated`, sem exibir/usar a chave local.
+
+**Pendências:** conexão/TLS reais com Groq, aceitação do schema/histórico pelo modelo
+escolhido, consumo, preço, latência e qualidade semântica/revisão humana real.
+Exigem escolha do modelo, estimativa de custo e nova autorização específica.
+Piloto e lote de 24 reais continuam pausados; script de piloto OpenAI não convertido
+para Groq. Alterações somente locais, sem commit/push/deploy e sem custo de API.
+Fontes oficiais, ativação futura e limitações em [23-adaptador-groq.md](23-adaptador-groq.md).
+
+## 09/11/2026 — US08: validação offline e ensaio automatizado de 24 fixtures com mocks
+
+Eliana solicitou revisar/reaproveitar os testes existentes, cobrir apenas lacunas e ensaiar as 24 execuções em banco descartável com a consulta original, **sem chamadas reais, sem chave válida e sem custo de API**. Lidos README/andamento/decisões/arquitetura e testes; conferidos Git e branch `feat/us08-avaliacao`. Alterações locais preexistentes, demo, consulta e ledgers dos pilotos preservados. Piloto e lote real continuam pausados; nenhuma autorização de chamada paga inferida.
+
+Revisão de cobertura história → critério/task → testes/evidências:
+
+| Cobertura existente reaproveitada | Quantidade executada | Cenários |
+|---|---:|---|
+| `tests/unit/test_openai_provider.py` — US08-CA1/CA2/CA3/T2 | 19 | SDK/adaptador reais com HTTP mockado: ferramentas/call_id/JSON Schema, resposta válida/inválida, recusa/incompleta, timeout/limites, 429 e ausência de retry, configuração/TLS |
+| `tests/unit/test_openai_diagnostics.py` — US08-CA1/CA2/T2 | 18 | insufficient_quota, rate_limit_exceeded, campos ausentes/nulos, JSON/envelope inválidos, sanitização de chave/texto/injeção; logger e ledger, sem retry |
+| `tests/unit/test_us08_pilot.py` — US08-CA2/CA3/T2 | 20 | Preparação sem chave/conexão, transporte fictício, consumo roteirizado, budget/interrupção, timeout e TLS |
+| Oito casos AV de `tests/unit/test_agent.py` | 8 | AV01–AV08 do simulador; mesmos valores extraídos para EVALUATION_CASES em tests/agent_helpers.py para compartilhar com o ensaio, sem duplicar fixtures |
+| `tests/integration/test_openai.py` — US08-CA1/CA2/T2 | 7 | API/PostgreSQL local: sucesso com revisão/resolução, inválido, timeout e 429 quota/rate/missing; chamado preservado, sem sugestão nas falhas, contrato público inalterado; migração/histórico |
+| `tests/integration/test_review_agreement.py` — preparação de avaliação US08 | 4 | Amostra vazia, correção/data/ID, prioridade divergente e exclusões de falha/sem revisão/sugestão incompleta |
+
+**Lacuna preenchida com somente um teste novo:** `tests/integration/test_mock_evaluation.py::test_24_fixture_evaluation_with_existing_sql`, um ensaio automatizado com mocks que percorre AV01–AV08 três vezes (24 iterações/triagens, não 24 novos testes pytest), reutilizando helpers HTTP/cliente/banco e `scripts/triage_review_agreement.sql` sem alterações. Sugestões e revisões são fixtures declaradas como automação, não avaliação semântica de modelo nem decisões humanas reais. Os registros têm mode=openai por usar o adaptador, mas o transporte é sempre MockTransport em memória; AI_MODE do ambiente permanece simulated.
+
+Ensaio novo aprovado: 24 chamados e 24 tentativas; **21 sucessos mockados + 3 falhas 429 roteirizadas** (AV08 × 3: insufficient_quota, rate_limit_exceeded e campos ausentes). Esses códigos são exclusivamente **cenários simulados**, sem atribuição da causa do 429 anterior. Cada falha faz uma chamada e zero ferramentas/revisões/sugestões; conteúdo do chamado preservado. Um sucesso (AV07/repetição 3) sem revisão também é excluído: **20 tentativas elegíveis**. AV01 inclui divergência só de prioridade, só de categoria e nas duas; AV02/repetição 1 tem revisão inicialmente divergente, depois corrigida com preservação do histórico.
+
+Consulta SQL antes da correção: elegíveis=20, categoria=17/85,00%, prioridade=17/85,00%, ambas=16. Depois: elegíveis=20, categoria=18/90,00%, prioridade=18/90,00%, ambas=17. **A correção não aumenta o denominador**, apesar de haver 21 registros de revisão para 20 tentativas revisadas. São 45 requisições HTTP mockadas (21×2+3×1) e 42 execuções de ferramentas locais, não tráfego real/cobrança. Percentuais deliberadamente controlados verificam cálculos; não comprovam meta de qualidade semântica de LLM. Manifesto AV/repetição/ticket/attempt/status e rótulo explícito de ensaio com mocks registrados nas propriedades do JUnit do ensaio.
+
+Comandos efetivamente executados na raiz (Python da venv):
+
+```powershell
+$env:AI_MODE = 'simulated'
+$env:APP_ENV = 'test'
+Remove-Item Env:OPENAI_API_KEY -ErrorAction SilentlyContinue
+$env:TEST_DATABASE_URL = 'postgresql+psycopg://portfolio_test:senha_ficticia_teste@127.0.0.1:55432/portfolio_test'
+.\.venv\Scripts\python.exe -m pytest tests/integration/test_mock_evaluation.py -q --junitxml=reports/us08-24-mock-rehearsal.xml
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_openai_provider.py tests/unit/test_openai_diagnostics.py tests/unit/test_us08_pilot.py tests/unit/test_agent.py::test_us04_ca1_ca4_reproducible_fixtures -q --junitxml=reports/us08-offline-reused-unit.xml
+.\.venv\Scripts\python.exe -m pytest tests/integration/test_openai.py tests/integration/test_review_agreement.py -q --junitxml=reports/us08-offline-reused-postgres.xml
+.\.venv\Scripts\python.exe -m ruff check .
+.\.venv\Scripts\python.exe -m ruff format --check .
+git diff --check
+```
+
+Remoção de OPENAI_API_KEY somente no processo de testes, sem alterar chave/ambiente persistente/`.env`; SDK recebe apenas placeholder fictício dos helpers existentes. Fixtures da API usam Settings sem `.env`; nenhum segredo local necessário/carregado para a avaliação. HTTP externo bloqueado nos testes e respostas em memória; não executado o caminho real do runner.
+
+**Resultados: 65 unitários passed (10,56 s) + 11 API/PostgreSQL reaproveitados passed (79,51 s) + 1 ensaio novo passed (18,44 s) = 77 testes aprovados, zero falhas/erros/skips.** São 76 testes existentes e um novo. Os três JUnit foram conferidos; aviso conhecido Starlette/TestClient/HTTPX preservado, sem ocultação ou dependência nova. Ruff check e format globais aprovados na conferência final; diff check aprovado. Sem necessidade de repetir HTTP/TCP/Uvicorn, CI remota ou toda regressão, pois nenhuma implementação de produção/dependência/migração foi alterada nesta entrega. Apenas fixtures/testes e documentação mudaram.
+
+Isolamento: 12 bancos únicos portfolio_test_<uuid>, registrados nos JUnit, criados/migrados/removidos pelas fixtures existentes. Conferência posterior em pg_database, pelo banco administrativo local portfolio_test, confirmou todos removidos; banco administrativo não limpo, demo e bancos dos pilotos sem acesso/alteração. Manifesto do ensaio conferido: 24 tentativas distintas e três ocorrências de cada AV01–AV08. SHA-256 confirmou os dois ledgers reais anteriores intactos e nenhum novo ledger real. `.env` confirmado **AI_MODE=simulated** consultando somente a linha correspondente, sem exibir chave. Quinze links locais dos documentos 06/18/22 conferidos, zero quebrados.
+
+Relatório [22-ensaio-us08-mocks.md](22-ensaio-us08-mocks.md) vinculado ao plano 06 e à consulta 18. Pendências: geração remota válida, acesso/faturamento/limites reais, usage e custo medidos, qualidade semântica e revisão humana real; exigem nova autorização quando aplicável. Piloto e lote de 24 reais continuam pausados, US08 não concluída. Tudo local para revisão, sem commit/push/deploy.
+
+## 09/11/2026 — US08: diagnóstico HTTP 429 sanitizado; validação exclusivamente offline
+
+Eliana solicitou status, error.code, error.type e x-request-id nos registros técnicos futuros, sem chave/corpo bruto, mantendo a resposta pública e AI_MODE=simulated. Conferidos README/andamento/decisões e Git: branch `feat/us08-avaliacao`, alterações e registros anteriores preservados, sem commit/push/deploy. Pedido **não autoriza nova chamada real**; pilotos anteriores e lote de 24 permanecem pausados.
+
+Rastreabilidade US08-CA1/CA2/T1/T2: `app/agent/diagnostics.py` centraliza extração/sanitização de HTTP 429 → `openai_provider.py` captura APIStatusError e registra JSON técnico no logger → `scripts/us08_pilot.py` registra os mesmos campos no response_received antes da validação de usage → `tests/unit/test_openai_diagnostics.py` exerce logger e ledger com SDK real/MockTransport → casos quota/rate/missing reaproveitam teste de API/PostgreSQL para comprovar contrato público/persistência. Fontes oficiais efetivamente abertas: [códigos de erro](https://developers.openai.com/api/docs/guides/error-codes) e [SDK Python](https://developers.openai.com/api/reference/python); atributos de APIStatusError confrontados com código do SDK 2.54.0 instalado. Sem novas dependências ou migrações.
+
+Registro técnico limitado a status 429, error.code/error.type de listas fechadas e x-request-id com formato/tamanho validados; ausências/null ficam null, valores desconhecidos/inválidos ou contendo a chave viram [redacted]. Não registrar mensagem, param, corpo bruto, Authorization ou traceback remoto. Campo request_id anterior do ledger usa o mesmo valor sanitizado; metadados livres de respostas de erro não entram no evento usage. Exceção continua convertida em ai_unavailable, sem retentativa. API pública mantém HTTP 503, código/mensagem/envelope/detalhes anteriores, sem códigos/tipos/ID remoto. Não houve reconstrução ou atribuição de causa aos pilotos passados.
+
+Comandos executados com dados e credenciais fictícios:
+
+```powershell
+$env:AI_MODE = 'simulated'
+.\.venv\Scripts\python.exe -m ruff check app/agent/diagnostics.py app/agent/openai_provider.py scripts/us08_pilot.py tests/unit/test_openai_diagnostics.py tests/integration/test_openai.py
+.\.venv\Scripts\python.exe -m ruff format --check app/agent/diagnostics.py app/agent/openai_provider.py scripts/us08_pilot.py tests/unit/test_openai_diagnostics.py tests/integration/test_openai.py
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_openai_diagnostics.py tests/unit/test_openai_provider.py tests/unit/test_us08_pilot.py -q --junitxml=reports/us08-429-offline-unit.xml
+$env:APP_ENV = 'test'
+$env:TEST_DATABASE_URL = 'postgresql+psycopg://portfolio_test:senha_ficticia_teste@127.0.0.1:55432/portfolio_test'
+.\.venv\Scripts\python.exe -m pytest tests/integration/test_openai.py -k 'quota or rate or missing' -q --junitxml=reports/us08-429-offline-api.xml
+git diff --check
+```
+
+Resultado final: **57 unitários passed (4,45 s)** e **3 API/PostgreSQL passed (11,94 s; 4 casos não pertinentes deselected)**, zero falhas/erros/skips nos dois JUnit conferidos. Aviso conhecido Starlette/TestClient/HTTPX preservado. Os 18 casos unitários novos cobrem quota insuficiente, requests, ausente/nulo, JSON inválido, envelope inesperado, tipos inválidos, chave nos campos, conteúdo longo/desconhecido e injeção de linha, em logger e ledger. Todas as requisições são MockTransport, com HTTP externo bloqueado; cada erro gera somente uma chamada. Inicialmente dois casos de injeção usavam acentos em header ASCII e falhavam na construção da fixture antes da resposta; fixture corrigida para header ASCII com CR/LF, mantendo conteúdo JSON Unicode/injeção, e ambos aprovados. Os três casos de API confirmam HTTP 503/ai_unavailable e mesmo envelope/mensagem/detalhes, ausência de metadados privados na resposta e título/descrição/identidade preservados após falha. PostgreSQL somente local em bancos únicos criados/removidos pela fixture existente, sem demo ou bancos dos pilotos.
+
+Ruff/format e git diff --check aprovados. Conferência de SHA-256 confirmou **os dois ledgers reais originais intactos** e ausência de qualquer novo ledger de execução real. `.env` confirmado AI_MODE=simulated, sem modificar chave/variáveis. Consulta de concordância e registros históricos preservados; documentos 19/21 atualizados. Somente alterações locais para revisão. Novos registros técnicos dependem de futuras respostas autorizadas: a correção offline não altera nem esclarece retrospectivamente error.code/error.type ausentes do HTTP 429 anterior.
+
+## 09/11/2026 — US08: nova tentativa autorizada, TLS verificado e HTTP 429; sem retry
+
+Eliana autorizou expressamente **uma única nova tentativa** do piloto gpt-6-luna, chamado fictício em banco isolado, até três requisições no total, TLS com certificado/hostname ativos e referência USD 0,01. Lote de 24 e repetições continuam sem autorização. Conferidos README/andamento/decisões, branch `feat/us08-avaliacao`, chave local presente (somente booleano), PostgreSQL loopback disponível e `.env` com AI_MODE=simulated. Contexto TLS confirmado com CERT_REQUIRED/check_hostname=True. Conferência dos ledgers mostrou apenas a primeira tentativa já documentada; nenhuma outra execução foi presumida ou repetida.
+
+Executado **uma única vez** com acesso de rede autorizado fora do sandbox:
+
+```powershell
+$env:AI_MODE = 'simulated'
+$env:APP_ENV = 'test'
+$env:TEST_DATABASE_URL = 'postgresql+psycopg://portfolio_test:senha_ficticia_teste@127.0.0.1:55432/portfolio_test'
+Remove-Item Env:OPENAI_LOG -ErrorAction SilentlyContinue
+.\.venv\Scripts\python.exe -m scripts.us08_pilot --execute-approved --model gpt-6-luna --pilot-budget-usd 0.01
+```
+
+**Resultado: saída 1, HTTP 429 na primeira requisição, interrupção imediata e zero retries.** A correção TLS permitiu receber resposta real da API com validação ativa; não houve resposta válida do modelo. Request ID `req_7b52e8cf20d74ab9bf45f9e1badc8899`. O ledger não contém código/tipo remoto específico, portanto causa do 429 (crédito/quota/taxa) não confirmada. Erro sanitizado persistido `ai_unavailable`. **Uma nova tentativa, uma requisição iniciada, uma resposta HTTP 429, model_calls=1, tool_calls=0. API não informou usage: tokens e custo calculado desconhecidos, não zero.** Não estimar cobrança real usando o máximo de tokens nem inferir sucesso de classificação. Sem nova base medida para projetar as 24.
+
+Run `dba4d17ac5464fc5b23e48e163b0ad45`; banco novo exclusivo `portfolio_test_us08_dba4d17ac5464fc5b23e48e163b0ad45`, preservado; ticket `a4955d63-5e88-4639-b3ac-2f6a27cc1c0c`; attempt `3b696a5c-1502-4e48-b5fe-cd85f884f6b1`. Início 09/11/2026 18:44:04 -03:00 e término 18:44:07 -03:00. SQL somente leitura nesse banco confirmou uma tentativa falha, identidade/título/descrição fictícios preservados, aberto/falha, version=3/content_revision=1, suggestion/final_classification nulos e zero human_reviews. Consulta de concordância original executada nesse banco retornou zero linhas. **Classificação sugerida: nenhuma. Revisão humana: não registrada, sem sugestão válida para revisar.** Não foi criada revisão em nome de Eliana.
+
+Ledger original intacto em `reports/us08/dba4d17ac5464fc5b23e48e163b0ad45.jsonl`, ignorado, SHA-256 `a61552d5f40e7125211596ea858e394e411d85a8bb46596dc0bc42a1189e1ea0`; sem chave/Authorization/corpos brutos. Chave lida somente localmente e não exibida. `.env` ao encerrar confirmado **AI_MODE=simulated**, sem alteração de outras variáveis. Demo e banco da primeira tentativa não acessados/alterados por esta execução. Documentos 08/21 atualizados preservando registros anteriores. `git diff --check` aprovado; sem repetir testes unitários/integração já cobertos ou alterar código/dependências. Sem commit/push/deploy.
+
+Esta segunda autorização foi utilizada. Avaliação interrompida conforme solicitado; não executar outra tentativa sem nova autorização. Conferir uso/cobrança e situação do projeto no painel privado antes de decidir próximos passos. Não comprar créditos nem alterar limites por conta própria. Lote de 24 permanece pausado; US08 não concluída.
+
+## 09/11/2026 — US08: exportação de uso conferida; sem consumo visível
+
+Eliana forneceu `completions_usage_2026-10-10_2026-11-09.csv` em Downloads. Arquivo lido integralmente via csv.DictReader, sem alterações/cópia para o Git: 31 linhas, apenas start_time/end_time/start_time_iso/end_time_iso; sem métricas de requisição, tokens, modelo, projeto ou valor monetário. SHA-256 `71cc6b52aa8732791affcb423e590cd9f7926172e16d6d99db05b6910ca335ff`.
+
+Janela da exportação inclui a tentativa: último intervalo 09/11/2026 00:00 UTC até 10/11/2026 00:00 UTC; SQL somente leitura no banco isolado do piloto confirmou started_at 09/11/2026 18:22:52 -03:00 (21:22:52 UTC), finished_at 18:22:54 -03:00. Sem acesso ao demo. Resultado registrado em [21-resultado-piloto-us08.md](21-resultado-piloto-us08.md): **sem consumo visível no CSV fornecido; valor não informado**. Não registrar custo zero: o CSV não traz faturamento nem filtros de projeto, e o piloto não retornou usage.
+
+Mantida a branch `feat/us08-avaliacao`, registros anteriores e alterações locais; somente documentação atualizada. `git diff --check` executado/aprovado. Sem testes funcionais repetidos, mudanças de código, leitura de chave, novas chamadas reais, commit/push/deploy. Nenhuma nova autorização de piloto/lote inferida do envio do arquivo. Piloto e 24 execuções continuam pausados, custo faturado não confirmado.
+
+## 09/11/2026 — US08: único piloto executado e interrompido por conexão, sem retry
+
+Após Eliana informar chave configurada, conferidos README/andamento/decisões, branch `feat/us08-avaliacao` e autorização vigente de um piloto/uma tentativa/até três requisições/modelo gpt-6-luna/verba de referência USD 0,01. Presença de chave local confirmada somente como booleano, sem imprimir valor. Conferência dos ledgers anteriores mostrou zero envios iniciados; não havia execução a repetir. PostgreSQL loopback disponível. Simulação mantida como padrão e AI_MODE=simulated no processo do runner; chave lida privadamente apenas no caminho explícito. Sem autorização para lote, retries, commit/push/deploy.
+
+Comando executado **uma única vez**, com acesso à rede fora do sandbox por autorização já concedida, sem aprovação financeira adicional presumida:
+
+```powershell
+$env:AI_MODE = 'simulated'
+$env:APP_ENV = 'test'
+$env:TEST_DATABASE_URL = 'postgresql+psycopg://portfolio_test:senha_ficticia_teste@127.0.0.1:55432/portfolio_test'
+Remove-Item Env:OPENAI_LOG -ErrorAction SilentlyContinue
+.\.venv\Scripts\python.exe -m scripts.us08_pilot --execute-approved --model gpt-6-luna --pilot-budget-usd 0.01
+```
+
+Resultado: código de saída **1**, `ai_unavailable`, interrupção na primeira conexão sem resposta HTTP ou usage. **Uma tentativa, um envio iniciado, zero respostas HTTP, zero ferramentas e zero revisões.** Nenhum retry do SDK ou nova tentativa manual. Evento request_started indica início local do transporte, não prova chegada ao provedor. Custo **desconhecido**, não declarado como zero; não foi possível recalcular as 24 com consumo medido, nem avaliar saída/semântica. Lote segue sem autorização e US08 não concluída.
+
+Evidências preservadas: run `8ee2f97c20d644f7b0f70fb134e638a5`, banco `portfolio_test_us08_8ee2f97c20d644f7b0f70fb134e638a5`, migration 0005; ticket `74f4841d-f116-4a99-ad35-9f966be99266`; attempt `f28a746f-b5d9-4509-8ac1-e5cf47487e8a`, mode/provider=openai/model=gpt-6-luna/status=falha/model_calls=1/tool_calls=0. SQL somente leitura nesse banco comprovou identidade/conteúdo fictício preservados, aberto/falha, version=3/content_revision=1, suggestion/final_classification nulos e zero human_reviews. Consulta de concordância original executada nesse banco retorna zero linhas. Não inventar review de uma sugestão inexistente nem declarar aprovação humana. Demo não acessado ou migrado.
+
+Ledger original intacto em `reports/us08/8ee2f97c20d644f7b0f70fb134e638a5.jsonl`; resumo sanitizado em `8ee2f97c20d644f7b0f70fb134e638a5-summary.json`, ambos ignorados. SHA-256 do ledger `a39229923fcee3764f535428b1f410465aac23e653370df32dc17a4382367b1e`. Conferência final de conteúdo feita lendo os literais UTF-8 do runner para evitar distorção de acentos no pipe PowerShell/Python; nenhuma escrita no chamado. Relatório versionável em [21-resultado-piloto-us08.md](21-resultado-piloto-us08.md).
+
+Diagnóstico posterior, **sem HTTP, chave ou chamada de modelo**: DNS OK; handshake TLS com CAs do sistema OK/TLSv1.3; handshake com certifi falhou `SSLCertVerificationError`, verify_code=20. Sem proxy ou CA customizada no ambiente (verificada somente presença). HTTPX 0.28.1/certifi 2026.10.23. É evidência compatível com a falha inicial; como o ledger original não registrava o tipo da exceção, não afirmamos sua causa exata como fato retrospectivamente comprovado.
+
+Correção local preparada conforme fontes oficiais [HTTPX/SSL](https://www.python-httpx.org/advanced/ssl/) e [Python 3.12/SSL](https://docs.python.org/3.12/library/ssl.html#ssl.create_default_context): adaptador e transporte do piloto usam contexto TLS com CAs do sistema, certificado obrigatório e hostname validado; key logging desabilitado. Sem verify=False, alteração/instalação de certificados da máquina, proxy, fallback inseguro, novas dependências ou mudança de endpoint. Retry continua zero. Logs futuros do runner guardam somente classe da exceção, sem mensagem/corpo/segredos. **Correção não testada em nova chamada real.**
+
+Verificações após correção:
+
+```powershell
+.\.venv\Scripts\python.exe -m ruff check app/agent/openai_provider.py scripts/us08_pilot.py tests/unit/test_openai_provider.py tests/unit/test_us08_pilot.py
+.\.venv\Scripts\python.exe -m ruff format --check app/agent/openai_provider.py scripts/us08_pilot.py tests/unit/test_openai_provider.py tests/unit/test_us08_pilot.py
+$env:AI_MODE = 'simulated'
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_us08_pilot.py tests/unit/test_openai_provider.py -q --junitxml=reports/us08-tls-fix.xml
+git diff --check
+```
+
+**39 passed, 1 warning, 3,75 s**, sem falha/erro/skip; dois testes novos verificam TLS obrigatório e contexto do transporte com zero retries, demais testes pertinentes reaproveitados, somente MockTransport/rede externa bloqueada. Aviso conhecido Starlette/TestClient/HTTPX preservado. Ruff/format/diff aprovados. README PT/EN e documentos 19/20 atualizados com o resultado, preservando todo histórico. Configuração do `.env` segue simulated ou padrão; chave permanece ignorada pelo Git.
+
+Próximo passo: conferir consumo no painel privado da OpenAI para a janela do piloto; sem usage, não assumir ausência de cobrança. A autorização de uma tentativa foi utilizada; qualquer nova tentativa real exige nova autorização após conciliação. Não repetir automaticamente nem iniciar as 24. Alterações e banco isolado permanecem locais para revisão.
+
+## 09/11/2026 — US08: piloto de USD 0,01 autorizado; aguardando chave local
+
+Após confirmação explícita, Eliana autorizou somente **um chamado fictício, uma tentativa de triagem, até três requisições no gpt-6-luna, orçamento de referência USD 0,01**, sem teto garantido de cobrança. As 24 execuções, retries, publicação e deploy continuam sem autorização. Não é necessário solicitar novamente essa autorização para executar o mesmo piloto quando a chave estiver disponível. Revisão humana exige decisão explícita da pessoa; não será inventada nem registrada automaticamente em nome de Eliana.
+
+Git conferido: branch `feat/us08-avaliacao`, alterações anteriores preservadas, sem commit/push. README/andamento/decisões lidos. PostgreSQL em 127.0.0.1:55432 aceita conexões; nenhum acesso ao banco demo. Verificação de presença de OPENAI_API_KEY, imprimindo somente booleanos: ausente no processo, `.env` e variáveis persistentes User/Machine do Windows. Nenhum segredo exposto. AI_MODE não definido no processo/`.env`, mantendo padrão simulated. Nenhum comando de execução real disparado; zero requisições OpenAI e zero bancos novos nesta etapa. A autorização do piloto permanece sem uso, bloqueada exclusivamente pela chave local ausente.
+
+Preparação independente concluída: executor anteriormente exigia verba da rodada de 24; `--round-budget-usd` agora é opcional, sem inventar aprovação de lote. `--pilot-budget-usd 0.01` basta para o piloto explicitamente autorizado, com até três requisições e interrupções anteriores mantidas. Chave pode ser lida do ambiente do processo ou, somente na execução explícita, do `.env` ignorado. Ledger futuro registra `authorized_triages=1` e orçamento de lote nulo quando não aprovado. Nenhuma mudança no adaptador, ferramentas, consulta, migrações, banco demo ou configuração padrão da aplicação. Autorização adicionada ao documento 08 e comando vigente ao documento 20, preservando proposta/histórico anterior.
+
+Verificações executadas:
+
+```powershell
+& 'C:\Program Files\PostgreSQL\16\bin\pg_isready.exe' -h 127.0.0.1 -p 55432
+.\.venv\Scripts\python.exe -m ruff check scripts/us08_pilot.py tests/unit/test_us08_pilot.py
+.\.venv\Scripts\python.exe -m ruff format --check scripts/us08_pilot.py tests/unit/test_us08_pilot.py
+$env:AI_MODE = 'simulated'
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_us08_pilot.py tests/unit/test_openai_provider.py -q --junitxml=reports/us08-pilot-authorized-preflight.xml
+git diff --check
+```
+
+Resultado: **37 passed, 1 warning, 2,89 s**, sem falha/erro/skip. Dois casos novos verificam transporte e CLI com somente orçamento de piloto, mantendo lote não autorizado; demais casos pertinentes reaproveitados. Transporte falso/rede real bloqueada conforme fixtures anteriores; aviso conhecido Starlette/TestClient/HTTPX preservado. Ruff/format e diff check aprovados. Sem repetir regressão PostgreSQL/HTTP real, por não alterar código da aplicação ou esquema.
+
+Próximo passo depende apenas de configurar OPENAI_API_KEY localmente no `.env` ignorado (manter AI_MODE=simulated) ou no ambiente herdado pelo executor, sem enviar o valor na conversa. Depois executar uma única vez o comando autorizado em [20-primeira-avaliacao-real.md](20-primeira-avaliacao-real.md), parar em erro, conferir usage/ferramentas/saída e apresentar para decisão humana. Não executar as 24 nem repetir tentativa sem nova autorização. Tudo local para revisão.
+
+## 09/11/2026 — US08: modelo econômico e primeira avaliação preparados para revisão
+
+Pedido de Eliana: recomendar modelo econômico compatível, conferir preço oficial, estimar um chamado/24 execuções com todas as requisições, preparar piloto isolado com consumo/interrupção e manter simulador ativo. Nenhuma autorização de cobrança nesta etapa. Branch `feat/us08-avaliacao` mantida com todas as alterações anteriores; sem commit/push/deploy. Consulta SQL, testes e registros anteriores preservados; nenhum acesso ao banco demo, chave ou API real.
+
+Habilidade OpenAI Docs aplicada para seleção, apoiada em páginas oficiais efetivamente abertas: [GPT-6 Luna](https://developers.openai.com/api/docs/models/gpt-6-luna), [preços](https://developers.openai.com/api/docs/pricing), [reasoning/usage/limites](https://developers.openai.com/api/docs/guides/reasoning) e [descontinuações](https://developers.openai.com/api/docs/deprecations). Recomendação para revisão: **gpt-6-luna**, compatibilidade documental com Responses/function calling/Structured Outputs. Modelo definitivo/acesso real ainda não confirmados. Uma tentativa de abrir a referência completa de Responses/create excedeu o limite de tamanho da ferramenta web; modelo, preços e guia de reasoning acessíveis forneceram os dados necessários, sem bloquear a preparação. Nenhuma dependência atualizada.
+
+Preço Standard/contexto curto conferido em 09/11/2026: USD 0,10/milhão entrada; USD 0,50/milhão saída; leitura de cache USD 0,01/milhão e escrita USD 0,125/milhão. Estimativas calculadas com Decimal: três requisições por triagem, entradas presumidas 1.500 + 2.500 + 3.500 = 7.500 tokens (histórico/schema/ferramentas incluídos), até 3 × 2.000 = 6.000 saída, incluindo reasoning. **Um chamado USD 0,00375; 24 execuções USD 0,09** (até 72 requisições). Reserva se toda entrada não cacheada for escrita de cache: **USD 0,0039375 / USD 0,0945**. Nenhum desconto de cache necessário para esses números. Não são tetos de cobrança: entrada não é limitada/verificada em tokens no adaptador, e timeout pode deixar custo remoto desconhecido. Limites locais de 20 s/3 chamadas/4 ferramentas mantidos. Proposta de verba, ainda não aprovada: USD 0,004 piloto e USD 0,10 rodada, com piloto incluído nas 24 se válido e sem alteração de parâmetros.
+
+Artefatos: [20-primeira-avaliacao-real.md](20-primeira-avaliacao-real.md) com premissas, cálculo, fontes, comando futuro seguro de chave local, banco exclusivo, critérios técnicos/semânticos/revisão e interrupção; `scripts/us08_pilot.py` separado da aplicação e sem rede/banco/chave no caminho padrão; `tests/unit/test_us08_pilot.py` para preparação, contabilização, uso com o adaptador existente e bloqueios. Runner futuro registra usage por requisição antes da validação da resposta, IDs/modelo/tier, orçamentos e custos derivados nominal/reservado em JSONL ignorado pelo Git, sem corpos/chaves. Bloqueia nova requisição se projeção ultrapassar orçamento ou houver erro/consumo desconhecido/tokens fora das premissas/tier incompatível. Não automatiza as outras 23 execuções, não mantém orçamento entre invocações e não autoriza retries. Banco do piloto seria criado/migrado com nome único e preservado para revisão, sem tocar o demo; esse caminho de execução real não foi acionado.
+
+Comandos efetivamente executados nesta preparação:
+
+```powershell
+$env:AI_MODE = 'simulated'
+.\.venv\Scripts\python.exe -m ruff check scripts/us08_pilot.py tests/unit/test_us08_pilot.py
+.\.venv\Scripts\python.exe -m ruff format --check scripts/us08_pilot.py tests/unit/test_us08_pilot.py
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_us08_pilot.py tests/unit/test_openai_provider.py -q --junitxml=reports/us08-pilot-preparation.xml
+.\.venv\Scripts\python.exe -m scripts.us08_pilot
+git diff --check
+```
+
+Resultado final: **35 passed, 1 warning, 5,75 s**, sem falha/erro/skip: 17 testes novos do piloto e 18 do adaptador reaproveitados. Transporte HTTP real bloqueado nos testes do piloto; adaptador exercitado com MockTransport/credenciais fictícias. Validação do CLI padrão confirmou ausência de leitura de chave, conexão de banco e chamada HTTP. JSONL testado para tokens de entrada/saída/cache/reasoning e ausência do texto de resposta; budgets insuficientes bloqueados antes do envio, orçamento reavaliado após usage, timeout/HTTP/usage ausente/input fora da premissa/incomplete/tier interrompem e impedem nova requisição. Ruff e diff check aprovados; aviso conhecido Starlette/TestClient/HTTPX mantido. Conferência independente Decimal validou os quatro totais; oito links locais dos documentos 19/20 conferidos, zero quebrados. Nenhuma suíte PostgreSQL/HTTP real/CI remota repetida: código da aplicação, migrações e consulta anteriores não alterados nesta preparação. As evidências anteriores continuam históricas, não representam execução nova.
+
+Pendente de Eliana: revisão do candidato/modelo e valores, aprovação explícita de verba e primeira execução. Depois: chave configurada somente no terminal local privado, confirmar acesso/tier/preço e testar o piloto em banco novo; registrar consumo real, revisar humanamente e recalcular projeção antes de avançar. As 24 execuções reais continuam não realizadas, US08 não concluída.
+
+## 09/11/2026 — US08: adaptador OpenAI opcional, sem chamadas reais
+
+Autorização explícita de Eliana: OpenAI como primeiro provedor, implementação local com transporte falso/credenciais fictícias, configuração explícita, migração preservando dados e regressão isolada. Mantida a branch `feat/us08-avaliacao`, sem commit, push ou deploy. Registros anteriores, SQL de concordância e seus testes preservados. Modelo definitivo, estimativa de custo e autorização das 24 execuções reais continuam pendentes; US08 não concluída.
+
+Fontes oficiais consultadas antes de atualizar dependências: [Responses](https://developers.openai.com/api/reference/responses/overview), [function calling](https://developers.openai.com/api/docs/guides/function-calling), [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs) e [SDK Python/retries/timeouts](https://developers.openai.com/api/reference/python). A documentação atual já descreve HTTPX2; conferidos os metadados do SDK efetivamente disponível, `openai==2.54.0`: Python >=3.10, HTTPX >=0.23,<1, Pydantic >=1.9,<3, compatíveis com Python 3.12.6/HTTPX 0.28.1/Pydantic 2.14.3 locais. Dry-run com constraints dos locks aprovado antes de instalar; nenhuma versão preexistente atualizada. Novas transitivas distro 1.9.0/jiter 0.19.0/sniffio 1.3.1/tqdm 4.70.1. Locks regenerados pelo script existente; instalação e `pip check` aprovados. Nova composição não ensaiada remotamente em Linux/Compose.
+
+Rastreabilidade história → critérios/tasks → código → testes:
+
+| Critério/task | Implementação | Verificação |
+|---|---|---|
+| US08-CA1/T1/T2 | `agent/factory.py`, `openai_provider.py`, extensão compatível de ToolCall/ModelReply com call_id/context | SDK real com MockTransport: funções estritas, tool outputs correlacionados, JSON Schema derivado de AgentOutput, saída válida/inválida, recusa, resposta incompleta e funções/argumentos proibidos |
+| US08-CA2/T1/T2 | Settings explícito, SecretStr, schemas de modo/provedor/modelo, tratamento sanitizado | Chave/modelo ausentes/vazios rejeitados; seleção explícita; padrão simulado; sem chave em repr/resposta/log; 429 sem retry ou fallback; CI e Compose mantidos simulados |
+| US08-CA3/T2 (parcial) | Prazo total asyncio + timeout SDK restante; max_retries=0; 3 chamadas/4 ferramentas/2.000 tokens por resposta | Timeout de transporte e deadline total, excesso de tokens/ferramentas; compatibilidade do modelo definitivo ainda pendente |
+| Persistência e revisão compartilhada | Serviço confirma tentativa antes do provedor, reaproveita AgentOutput/Suggestion e fluxos humanos; migração 0005 e modelos | Sucesso OpenAI fictício revisado/resolvido; falha/timeout preservam chamado/conteúdo; CHECKs rejeitam metadados incoerentes; downgrade com tentativas OpenAI falha sem perda de dados |
+| Upgrade preservando histórico | 0004→0005 adiciona colunas nullable e amplia CHECK sem reescrever dados simulados | Comparação de tickets/eventos/tentativas/revisões antes/depois, metadados anteriores nulos e `alembic check` |
+| Consulta anterior preservada | `scripts/triage_review_agreement.sql` sem alterações; documentação 18/19 | Quatro cenários anteriores + agrupamento openai em tentativa fictícia revisada |
+
+`tests/unit/test_openai_provider.py` e `tests/integration/test_openai.py` bloqueiam conexão Python a destinos externos e injetam MockTransport no HTTPX do SDK. Loopback é permitido para PostgreSQL e socketpair do asyncio no Windows. Nenhuma credencial real ou chamada à API OpenAI usada. Endpoint de produção fixo, trust_env=False, redirects desabilitados, store=False; contexto de continuação somente em memória da execução. SDK sem retentativas. Não há teto monetário garantido; limites e ativação futura em [19-adaptador-openai.md](19-adaptador-openai.md).
+
+Comandos executados (Python da venv na raiz):
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install --dry-run 'openai>=2,<3' -c requirements-dev.lock
+.\.venv\Scripts\python.exe -m pip install 'openai==2.54.0' -c requirements-dev.lock
+.\.venv\Scripts\python.exe scripts/lock_dependencies.py
+$env:AI_MODE = 'simulated'
+$env:APP_ENV = 'test'
+$env:TEST_DATABASE_URL = 'postgresql+psycopg://portfolio_test:senha_ficticia_teste@127.0.0.1:55432/portfolio_test'
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_openai_provider.py -q
+.\.venv\Scripts\python.exe -m pytest tests/integration/test_openai.py tests/integration/test_review_agreement.py -q --junitxml=reports/us08-openai-focused.xml
+.\.venv\Scripts\python.exe scripts/check_quality.py
+# Após ajuste da fixture histórica de migração, reexecutado somente o caso afetado:
+.\.venv\Scripts\python.exe -m pytest tests/integration/test_reviews.py::test_us06_migration_preserves_attempts_and_classification_snapshots -q --junitxml=reports/us08-migration-final.xml
+# HTTP real executado separadamente, pois o pipeline para na falha da suíte anterior:
+.\.venv\Scripts\python.exe -m pytest tests/e2e -q --junitxml=reports/us08-http-final.xml
+.\.venv\Scripts\python.exe -m ruff check .
+.\.venv\Scripts\python.exe -m ruff format --check .
+git diff --check
+```
+
+Resultados focados iniciais: **18 unitários passed (6,79 s)** e **8 PostgreSQL passed (59,06 s)**. A primeira versão do bloqueio de rede também bloqueava o socketpair de loopback do asyncio no Windows, causando nove falhas unitárias; corrigido o bloqueio para permitir somente loopback, mantendo destinos externos proibidos, e os 18 passaram. Nenhuma falha foi convertida em skip.
+
+Regressão: **116 unitários passed (5,96 s)**. A suíte PostgreSQL/API terminou com **84 passed, 1 failed (517,61 s)**: uma fixture antiga de US06 executava o código atual sobre esquema 0003, sem as novas colunas; preparação ajustada para ocorrer em head e depois retornar a 0003 no banco descartável. Snapshot compara os campos históricos, excluindo somente as duas colunas novas; teste específico de 0005 confere seus valores nulos. Caso corrigido reexecutado: **1 passed (30,74 s)**. HTTP real/TCP/Uvicorn separado: **2 passed (44,67 s)**. O pipeline original encerrou com código 1 por essa falha anterior; não foi declarado como execução integral verde nem repetidas as suítes já aprovadas. Conferência dos quatro JUnit (`unit.xml`, `postgres-api.xml`, `us08-migration-final.xml`, `us08-http-final.xml`), usando o último resultado por classname/nome, confirmou **203 cenários distintos com resultado final aprovado, zero erros/falhas/skips pendentes**. Aviso conhecido Starlette/TestClient/HTTPX preservado; Ruff check/format, pip check e git diff --check finais aprovados. Conferidos 66 links locais, zero quebrados.
+
+Somente bancos gerados `portfolio_test_<uuid>` em PostgreSQL 16.4 local, com criação/migração/descarte pela fixture existente. Conferidos 87 nomes únicos nesses quatro JUnit; consulta a pg_database no banco administrativo de teste confirmou todos removidos. Banco administrativo recebido não é limpo; banco de demonstração não acessado nem migrado. Aplicação e documentação agora têm head 0005, mas o demo existente exige upgrade explícito antes de executar esta versão sobre ele. CI remota e Docker não executados nesta entrega. READMEs, arquitetura, contrato, backlog e decisão atualizados; histórico documental anterior preservado. Para primeira chamada real ainda faltam modelo compatível, estimativa e autorização de custo/execução, chave configurada localmente e banco de avaliação isolado migrado; não solicitar nem publicar chave na conversa.
+
+## 09/11/2026 — US08: consulta de concordância validada em PostgreSQL isolado
+
+Eliana forneceu o SQL diretamente na conversa, substituindo a dependência do arquivo não localizado nos registros abaixo. Mantida a branch `feat/us08-avaliacao` em `fb0b93a`, com a alteração documental anterior preservada. Criados os arquivos diretamente a partir do conteúdo autorizado; não houve aplicação de patch Git, portanto `git apply --check` não se aplica a esta edição direta. Sem commit ou push.
+
+Rastreabilidade desta tarefa preparatória de US08: consulta `scripts/triage_review_agreement.sql` (SQL fornecido, sem alteração) → explicação e limites em `docs/18-avaliacao-triagem.md` → vínculo recíproco às 24 execuções previstas em `docs/06-testes.md` → teste PostgreSQL `tests/integration/test_review_agreement.py`. Unidade de análise: tentativa revisada, com última revisão por data/ID. Concordância na amostra revisada não equivale a acurácia ou qualidade semântica de modelo real.
+
+Comandos executados na raiz, sem instalar dependências:
+
+```powershell
+.\.venv\Scripts\python.exe -m ruff check tests/integration/test_review_agreement.py
+.\.venv\Scripts\python.exe -m ruff format --check tests/integration/test_review_agreement.py
+$env:TEST_DATABASE_URL = 'postgresql+psycopg://portfolio_test:senha_ficticia_teste@127.0.0.1:55432/portfolio_test'
+$env:AI_MODE = 'simulated'
+$env:APP_ENV = 'test'
+.\.venv\Scripts\python.exe -m pytest tests/integration/test_review_agreement.py -q --junitxml=reports/us08-review-agreement.xml
+git diff --check
+```
+
+Resultado: **4 passed, 1 warning, 22,05 s**, sem falha ou skip, PostgreSQL **16.4** real em loopback. Ruff check/format aprovados. Aviso conhecido de depreciação Starlette/TestClient/HTTPX, sem ocultação. SQL executado diretamente do arquivo sobre esquema migrado até 0004, sem mocks ou SQLite:
+
+| Cenário | Resultado verificado |
+|---|---|
+| Amostra vazia | Zero linhas |
+| Revisão corrigida | Três revisões, uma única tentativa contada; data prevalece sobre ID antigo maior; empate recente usa maior ID; categoria/prioridade 1/1, 100,00%, ambas=1 |
+| Prioridade divergente e categoria correta | Uma tentativa, categoria 1/100,00%, prioridade 0/0,00%, ambas=0 |
+| Exclusões | Uma elegível contada; sucesso sem revisão, falha com revisão sintética e sugestões sem categoria ou sem prioridade excluídos; resultado 1/1 em ambas as dimensões |
+
+A revisão ligada à falha é fixture deliberada no banco para testar o filtro defensivo; não representa fluxo permitido pela API. Isolamento pela fixture existente: quatro bancos distintos `portfolio_test_<uuid>`, registrados no JUnit ignorado em `reports/`. Conferência adicional do JUnit confirmou quatro nomes únicos; consulta a `pg_database` no banco administrativo `portfolio_test` confirmou que todos foram removidos. Nenhuma conexão ao banco de demonstração, reinício de serviço ou alteração no demo. Apenas o cluster de teste já ativo foi reutilizado.
+
+Validação proporcional restrita à consulta nova; suíte geral, Docker/CI remota e as 24 execuções controladas de modelo real não executados nesta entrega. US08 permanece parcial: provedor, modelo e orçamento pendentes; somente `AI_MODE=simulated`, sem chamadas pagas, deploy ou publicação. Registros anteriores mantidos como histórico; alterações locais para revisão.
+
+## 09/11/2026 — US08: preparação local; patch não localizado
+
+Pedido de Eliana: aplicar `us08-avaliacao.patch` após `git apply --check`, validar a consulta no PostgreSQL isolado com dados fictícios e manter alterações locais para revisão. Escopo restrito à avaliação solicitada; integração real, chamadas pagas, publicação e deploy continuam sem autorização.
+
+Inspeção inicial: `git status --porcelain=v1` sem alterações; branch `main`, HEAD `fb0b93a`. Criada a branch local `feat/us08-avaliacao` com `git switch -c feat/us08-avaliacao`, preservando o conteúdo existente. A criação exigiu execução fora da restrição de escrita em `.git`; concluída sem modificar histórico.
+
+Bloqueio: `Get-Item` não encontrou `C:\Users\Cliente\Downloads\us08-avaliacao.patch`. O caminho de Downloads foi confirmado pelo registro User Shell Folders; `rg --files 'C:\Users\Cliente\Downloads' -g '*.patch' -g '*us08*'` também não localizou o patch solicitado nas subpastas. Nenhum patch aplicado; `git apply --check` e testes PostgreSQL não executados por ausência do arquivo. Nenhum banco ou demo acessado/modificado.
+
+Pendente: receber o arquivo ou seu caminho correto, ler o diff, executar `git apply --check` antes de aplicar e validar a consulta em banco descartável. Evidências obrigatórias ainda ausentes: correção de revisão contada uma única vez e exclusão de tentativas sem revisão ou com falha. US08 não aprovada nem concluída. Branch e registro mantidos locais, sem commit ou push.
+
+Nova tentativa em 09/11/2026 após relato de download: confirmada a branch `feat/us08-avaliacao`, com somente este documento modificado. Downloads continua registrado como `C:\Users\Cliente\Downloads`. Repetidas a busca com `rg --files` e a busca recursiva com `Get-ChildItem -File -Force -Recurse -Filter '*us08*'` (incluindo arquivos ocultos e sem depender das exclusões do rg), sem localizar o arquivo. Bloqueio permanece; nenhum patch ou teste de consulta executado. Registro anterior preservado.
+
 ## 08/11/2026 — Repositório público e CI remota aprovados
 
 Retomada com leitura de AGENTS/README/andamento/documento 17 e inspeção real do Git: main em c7c3331, limpa, sem remoto. Reescrita de privacidade já estava concluída, portanto não foi repetida. Conta autenticada elisilva75 e inexistência do repositório reconferidas (404). Autorização explícita vigente: público/main/MIT/noreply confirmado, sem outras branches/tags/backups/force push, deploy ou chamadas pagas.

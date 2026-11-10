@@ -6,6 +6,7 @@ from typing import Protocol
 class ToolCall:
     name: str
     arguments: dict = field(default_factory=dict)
+    call_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -13,6 +14,7 @@ class ModelReply:
     calls: tuple[ToolCall, ...] = ()
     result: dict | None = None
     output_tokens: int = 0
+    context: tuple[dict, ...] = ()
 
 
 class AIProvider(Protocol):

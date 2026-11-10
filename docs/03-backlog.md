@@ -11,7 +11,7 @@
 | US05 | CA1–CA4 e tasks verificados localmente por automação; regressão ampliada em US06 | Sem demonstração manual obrigatória; CI remota aprovada; Compose pendente |
 | US06 | CA1–CA4/T1–T3 e DoD funcional atendidos; regressão ampliada de 177 testes local e remotamente | Sem gate manual; DoD global do MVP ainda depende de US01/Compose |
 | US07 | CA1–CA3/T1–T3 atendidos; pipeline local e CI remota aprovados com 177 testes, isolamento e gates verificados | DoD de qualidade atendida; Compose continua pertencendo a US01 |
-| US08 | Adiada | Somente provedor simulado autorizado; integração real e orçamento pendentes |
+| US08 | Adaptador OpenAI e consulta de concordância preparados localmente; testes com transporte falso | Provedor escolhido; modelo, custo, autorização das 24 execuções reais e validação remota pendentes; não concluída |
 | US09 | CA1–CA3/T1–T3 atendidos no escopo nativo isolado; README PT/EN, roteiro, portfólio e publicação pública autorizada executados | Clone publicado e CI Ubuntu verificados; guia Compose explicitamente não validado |
 
 Rastreabilidade dos arquivos, critérios e resultados em [andamento](andamento.md). Nenhuma pendência foi convertida em aceite aprovado.

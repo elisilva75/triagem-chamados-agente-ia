@@ -2,11 +2,19 @@
 
 [English](README.en.md) · Portfólio de **Eliana Gomes da Silva** · versão 0.5.0.
 
-API local para registrar chamados, sugerir classificação e apoiar uma decisão humana rastreável. **O agente é inteiramente simulado:** roteiros reproduzíveis consultam duas ferramentas locais (catálogo de categorias e política de prioridade). Não há LLM, SDK de provedor, chave de IA nem inferência paga. Integração com modelo real permanece adiada em **US08**; não alegamos acurácia de modelo real.
+US08: [Groq experimental e opcional](docs/23-adaptador-groq.md), com testes HTTP
+mockados e avaliação exploratória de oito cenários fictícios revisados por Eliana.
+Simulador padrão; novas chamadas e lote real de 24 permanecem pausados.
+
+API local para registrar chamados, sugerir classificação e apoiar uma decisão humana rastreável. **O agente usa simulação por padrão:** roteiros reproduzíveis consultam duas ferramentas locais (catálogo de categorias e política de prioridade). US08 inclui adaptadores opcionais OpenAI e Groq via Responses API. A Groq exige explicitamente `AI_MODE=groq`, `GROQ_API_KEY` e `GROQ_MODEL`; configuração incompleta falha sem fallback. Manter `AI_MODE=simulated` no ambiente local e nunca incluir a chave no Git. [OpenAI e histórico do piloto](docs/21-resultado-piloto-us08.md); [configuração Groq](docs/23-adaptador-groq.md).
+
+Na avaliação exploratória com `openai/gpt-oss-20b`, os oito cenários tiveram ao menos uma sugestão válida revisada, em etapas separadas. A primeira rodada teve sete sucessos e um HTTP 429 `rate_limit_exceeded` no AV08, preservado como falha. A revalidação de AV01/AV05/AV06 melhorou `missing_fields` no AV01, mas AV05 mudou de `media` provisória para `baixa`, divergência sem prioridade humana definitiva. O AV08 posterior teve `duvida / baixa` e lista vazia aceitos; “sem bloqueio relatado” não comprova “sem impacto”. Persistem ressalvas de campos ausentes e resistência integral à injeção inconclusiva no AV06. **A consistência das 24 execuções (três por cenário sob as mesmas instruções) não foi avaliada**, e o lote real continua desabilitado. [Resultados, denominadores e limitações](docs/andamento.md).
+
+Consumo do executor é separado de cobrança: 16.426 tokens conhecidos/parciais na primeira rodada, 10.924 na revalidação e 3.227 no AV08 posterior. O painel foi relatado como **sem cobrança observada no plano Livre**, com US$ 0,01 de projeção mensal do Projeto padrão, sem valor exclusivo por etapa. A cobrança do último AV08 continua **não confirmada**. Relatórios brutos em `reports/` são locais e ignorados pelo Git; a documentação preserva o resumo revisado.
 
 Funcionalidades: cadastro/consulta paginada, edição com versionamento otimista, sugestão validada, retry explícito, recuperação de tentativas expiradas, revisão humana, classificação final, resolução e reabertura. Edição efetiva invalida a classificação atual e preserva tentativas, revisões e snapshots anteriores. Cadastro funciona sem triagem; a pessoa revisora decide a classificação final.
 
-Arquitetura: monólito modular FastAPI/Pydantic → serviços de aplicação e regras de domínio → repositórios SQLAlchemy/PostgreSQL; migrações Alembic. Orquestrador separado por interface AIProvider usa somente o simulador. A tentativa é persistida antes da execução; não há transação de banco aberta durante a chamada ao provedor. Saídas/ferramentas são validadas fora dele. [Arquitetura e decisões](docs/04-arquitetura.md).
+Arquitetura: monólito modular FastAPI/Pydantic → serviços de aplicação e regras de domínio → repositórios SQLAlchemy/PostgreSQL; migrações Alembic. Orquestrador separado por interface AIProvider usa simulação padrão e adaptadores OpenAI/Groq opcionais. A tentativa é persistida antes da execução; não há transação de banco aberta durante a chamada ao provedor. Saídas/ferramentas são validadas fora dele. [Arquitetura e decisões](docs/04-arquitetura.md).
 
 ## Obter o projeto
 
@@ -70,7 +78,7 @@ Invoke-RestMethod http://127.0.0.1:8000/health
 Invoke-RestMethod http://127.0.0.1:8000/api/v1/tickets
 ```
 
-Health 200 deve ser complementado pela consulta real. Swagger: **http://127.0.0.1:8000/docs**; OpenAPI: /openapi.json. Migração deve estar em 0004; não ocorre por requisição.
+Health 200 deve ser complementado pela consulta real. Swagger: **http://127.0.0.1:8000/docs**; OpenAPI: /openapi.json. Migração head local é 0006; não ocorre por requisição. O demo existente não foi migrado nesta entrega; seu upgrade deve ser explícito antes de executar esta versão sobre ele.
 
 ## Parar e reiniciar sem apagar dados
 
@@ -174,7 +182,7 @@ Interrompe na primeira falha e rejeita suites vazias/com skips obrigatórios. JU
 
 | Componente | Versão |
 |---|---|
-| Aplicação / migração head | 0.5.0 / 0004 |
+| Aplicação / migração head local | 0.5.0 / 0006 |
 | Python / pip / Git | 3.12.6 / 24.2 / 2.46.2.windows.1 |
 | PowerShell | 5.1.26100.9818 |
 | PostgreSQL nativo | 16.4 |
@@ -191,7 +199,7 @@ Validação local anterior em **08/11/2026**: Python da venv com `scripts/check_
 
 ## Limitações, licença e publicação
 
-Uso exclusivo em **loopback, com dados fictícios e sem autenticação**. Não expor publicamente nem usar com dados de empregadores. Autor da revisão é declarado, não autenticado. Não há reconstrução integral de textos antigos, auditoria legal, worker distribuído ou evidência de qualidade de modelo real.
+Uso exclusivo em **loopback, com dados fictícios e sem autenticação**. Não expor publicamente nem usar com dados de empregadores. Autor da revisão é declarado, não autenticado. Não há reconstrução integral de textos antigos, auditoria legal ou worker distribuído. A avaliação real é exploratória e pequena; não demonstra qualidade geral, consistência ou segurança integral do modelo. O limite de 16 KiB é de bytes do corpo, não um teto verificável de tokens de entrada.
 
 Licença [MIT](LICENSE), copyright 2026 Eliana Gomes da Silva. Publicação pública de main autorizada pela autora, com endereço GitHub noreply confirmado nos commits. Auditoria e resultado da publicação/CI na revisão vinculada abaixo e no andamento. Docker Compose permanece pendente de validação. Sem deploy ou chamadas pagas.
 

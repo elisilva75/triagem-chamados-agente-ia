@@ -1,6 +1,6 @@
 # Contrato da API — versão 0.5.0
 
-**Contrato funcional implementado até US06, em modo simulado.** Prefixo `/api/v1`, JSON UTF-8, campos em inglês e valores de negócio conforme enums documentados. OpenAPI gerado pelo FastAPI é consultável em /openapi.json; Swagger em /docs. [Sequência executável com corpos completos](16-demonstracao-e-portfolio.md). US08 não faz parte deste contrato.
+**Contrato funcional implementado até US06, com adaptador opcional de US08.** Prefixo `/api/v1`, JSON UTF-8, campos em inglês e valores de negócio conforme enums documentados. OpenAPI gerado pelo FastAPI é consultável em /openapi.json; Swagger em /docs. [Sequência executável com corpos completos](16-demonstracao-e-portfolio.md). Simulação continua padrão. Não há parâmetro HTTP para escolher provedor/modelo: configuração é exclusiva do servidor. `AttemptRead.mode` e `Suggestion.mode` aceitam `simulated`, `openai` ou `groq`; tentativas externas retornam `provider="openai"` ou `provider="groq"` e o modelo configurado, simuladas mantêm ambos nulos. Chave nunca integra o contrato. [Configuração e limites](19-adaptador-openai.md).
 
 **Estado da entrega US01–US06:** disponíveis GET `/health`, POST/GET `/api/v1/tickets`, GET/PATCH `/api/v1/tickets/{ticket_id}`, POST `/api/v1/tickets/{ticket_id}/triage` e GET `/api/v1/tickets/{ticket_id}/triage-attempts`. OpenAPI usa ticket_id. Retry e recuperação por prazo implementados em US05. Revisão humana, classificação final, resolução/reabertura e consultas de reviews implementadas em US06, nas rotas da tabela abaixo.
 
@@ -138,3 +138,5 @@ GET reviews e GET reviews/{review_id} implementados: lista por created_at ASC/id
 POST resolve/reopen recebe somente expected_version obtido em GET atual. Resolve: aberto/revisada com classificação final válida → resolvido/revisada. Reopen: resolvido/revisada → aberto/revisada, mantendo classificações e conteúdo. 200 Ticket, version +1, content_revision preservada, evento de estado atômico. Versão antiga: 409/version_conflict; estado proibido/transição repetida/classificação atual inconsistente: 409/invalid_transition. 503/storage_unavailable se a transação falhar, sem sucesso parcial.
 
 Não resolver pendente/falha/sugerida/em_analise, nem revisar ou editar resolvido. Reabrir permite nova revisão ou edição. Edição efetiva invalida classificação e exige nova triagem; review/tentativa anteriores seguem consultáveis. No-op classificado não invalida nem cria evento. Resultados e limites em [validação US06](15-validacao-us06.md). Os exemplos numéricos acima são ilustrativos; não reutilizar versões sem consultar o registro atual.
+
+Groq opcional, apenas validada com mocks: [configuração e limitações](23-adaptador-groq.md).

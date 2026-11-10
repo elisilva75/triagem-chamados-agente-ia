@@ -1,7 +1,22 @@
 from app.domain.catalog import CATALOG_VERSION, Category
 
-POLICY_VERSION = "1"
+POLICY_VERSION = "2"
 TOOLS = ("consultar_categorias", "consultar_politica_prioridade")
+FIELD_CHECK_GUIDANCE = (
+    "expected_fields é uma lista de campos a verificar, não uma lista de campos ausentes. "
+    "missing_fields contém apenas campos aplicáveis cuja informação ainda falta. "
+    "Informação ausente: incluir o campo aplicável. Informação parcial: reconhecer o que "
+    "já foi informado; incluir apenas se faltar complemento indispensável à triagem, "
+    "explicando na justificativa o que falta. Campo não aplicável: não incluir. "
+    "Não copiar expected_fields automaticamente; a lista pode ser vazia. "
+    "Não exigir reprodução ou início de incidente para uma dúvida de uso sem incidente. "
+    "Sem bloqueio é informação de impacto, mas não prova ausência de todo impacto."
+)
+TOOL_DESCRIPTIONS = {
+    TOOLS[0]: "Consulta o catálogo local de categorias permitidas.",
+    TOOLS[1]: "Consulta a política local de prioridade e os campos a verificar. "
+    + FIELD_CHECK_GUIDANCE,
+}
 
 
 def execute_tool(name: str, arguments: dict) -> dict:
@@ -27,4 +42,5 @@ def execute_tool(name: str, arguments: dict) -> dict:
             "baixa": "Dúvida ou melhoria sem bloqueio.",
         },
         "expected_fields": ["ambiente", "passos_reproducao", "impacto", "inicio_ocorrencia"],
+        "expected_fields_guidance": FIELD_CHECK_GUIDANCE,
     }

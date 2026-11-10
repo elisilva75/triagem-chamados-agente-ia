@@ -1,12 +1,20 @@
 # Ticket Triage — simulated MVP
 
+US08: [experimental optional Groq adapter](docs/23-adaptador-groq.md), with mocked
+HTTP tests and an exploratory evaluation of eight fictitious scenarios reviewed
+by Eliana. Simulation remains the default; further calls and the real 24-run batch are paused.
+
 [Português](README.md) · Portfolio by **Eliana Gomes da Silva** · version 0.5.0.
 
-A local API for recording support tickets, suggesting classifications and supporting traceable human decisions. **The agent is entirely simulated:** reproducible scripts consult two local tools (category catalog and priority policy). There is no LLM, provider SDK, AI key or paid inference. Real-model integration remains deferred to **US08**; this project makes no real-model accuracy claim.
+A local API for recording support tickets, suggesting classifications and supporting traceable human decisions. **Simulation is the default:** reproducible scripts consult two local tools (category catalog and priority policy). US08 adds optional OpenAI and Groq Responses API adapters. Groq explicitly requires `AI_MODE=groq`, `GROQ_API_KEY` and `GROQ_MODEL`; incomplete configuration fails without fallback. Keep `AI_MODE=simulated` locally and never commit the key. [OpenAI pilot history](docs/21-resultado-piloto-us08.md) and [Groq configuration](docs/23-adaptador-groq.md) (Portuguese).
+
+In the exploratory evaluation with `openai/gpt-oss-20b`, all eight scenarios received at least one valid, human-reviewed suggestion across separate stages. The first round had seven successes and an HTTP 429 `rate_limit_exceeded` for AV08, preserved as a failure. Revalidating AV01/AV05/AV06 improved AV01 missing fields, but AV05 changed from provisional `media` to `baixa`, a divergence with no definitive human priority. A later AV08 run had `duvida / baixa` and an empty list accepted; “no blocking reported” does not establish “no impact”. Missing-field quality issues remain, and full injection resistance for AV06 is inconclusive. **Consistency across 24 controlled runs (three per scenario under the same instructions) has not been evaluated**; the real batch remains disabled. [Results, denominators and limitations](docs/andamento.md) (Portuguese).
+
+Executor usage is separate from billing: 16,426 known/partial tokens in the first round, 10,924 in revalidation and 3,227 in the later AV08 run. The dashboard was reported as showing **no charge observed on the Free plan**, with a USD 0.01 monthly projection for the Default project, without stage-specific costs. Billing for the latest AV08 remains **unconfirmed**. Raw reports in `reports/` stay local and Git-ignored; documentation preserves the reviewed summary.
 
 Features: registration, paginated queries, optimistic version checks, validated suggestions, explicit retries, expired-attempt recovery, human review, final classification, resolution and reopening. Effective edits invalidate the current classification while preserving previous attempts, reviews and classification snapshots. Registration works without triage; a human decides the final classification.
 
-Architecture: modular monolith with FastAPI/Pydantic → application services and domain rules → SQLAlchemy/PostgreSQL repositories; Alembic migrations. A separate orchestrator uses the AIProvider interface and the simulator only. Attempts are persisted before execution; provider calls hold no database transaction. Tool/output validation happens outside the provider. [Architecture and decisions](docs/04-arquitetura.md) (Portuguese).
+Architecture: modular monolith with FastAPI/Pydantic → application services and domain rules → SQLAlchemy/PostgreSQL repositories; Alembic migrations. A separate orchestrator uses AIProvider with simulation by default and optional OpenAI/Groq adapters. Attempts are persisted before execution; provider calls hold no database transaction. Tool/output validation happens outside the provider. [Architecture and decisions](docs/04-arquitetura.md) (Portuguese).
 
 ## Get the project
 
@@ -70,7 +78,7 @@ Invoke-RestMethod http://127.0.0.1:8000/health
 Invoke-RestMethod http://127.0.0.1:8000/api/v1/tickets
 ```
 
-Complement health 200 with a real query. Swagger: **http://127.0.0.1:8000/docs**; OpenAPI: /openapi.json. Migration head must be 0004; requests never apply migrations.
+Complement health 200 with a real query. Swagger: **http://127.0.0.1:8000/docs**; OpenAPI: /openapi.json. Local migration head is 0006; requests never apply migrations. The existing demo was not migrated in this delivery; explicitly upgrade it before running this version against it.
 
 ## Stop and restart without deleting data
 
@@ -174,7 +182,7 @@ The pipeline stops on the first failure and rejects empty/skipped mandatory suit
 
 | Component | Version |
 |---|---|
-| Application / migration head | 0.5.0 / 0004 |
+| Application / local migration head | 0.5.0 / 0006 |
 | Python / pip / Git | 3.12.6 / 24.2 / 2.46.2.windows.1 |
 | PowerShell | 5.1.26100.9818 |
 | PostgreSQL native | 16.4 |
@@ -191,7 +199,7 @@ Previous local validation on **2026-11-08**: venv Python with `scripts/check_qua
 
 ## Limitations, license and publication
 
-**Loopback only, fictitious data, no authentication.** Do not expose publicly or use employer data. Reviewer identity is declared, not authenticated. No complete historical text reconstruction, legal audit guarantee, distributed worker or real-model quality evidence.
+**Loopback only, fictitious data, no authentication.** Do not expose publicly or use employer data. Reviewer identity is declared, not authenticated. No complete historical text reconstruction, legal audit guarantee or distributed worker. The small real evaluation is exploratory; it does not establish general model quality, consistency or full security. The 16 KiB body limit is a byte limit, not a verifiable input-token ceiling.
 
 Licensed under [MIT](LICENSE), copyright 2026 Eliana Gomes da Silva. Public publication of main was authorized by the author, with her confirmed GitHub noreply address in commit metadata. Publication/CI results and the audit are documented in the review linked below and delivery log. Docker Compose validation remains pending. No deployment or paid call has been performed.
 

@@ -1,5 +1,23 @@
 # Estratégia de testes e avaliação
 
+Plano de revisão em 10/11/2026: [24 execuções AV01–AV08 × 3](26-plano-24-avaliacoes-us08.md),
+com rótulos, ambiguidades, métricas, limites e pendências. Somente planejamento;
+fixtures existentes preservadas e lote real pausado.
+
+Groq opcional (US08, 09/11/2026): 13 casos em `tests/unit/test_groq_provider.py`
+cobrem configuração, seleção, ferramentas juntas/separadas, JSON Schema e 429
+sanitizado sem retry. Os seis cenários de persistência/revisão do adaptador em
+`tests/integration/test_openai.py` agora são parametrizados para OpenAI e Groq:
+sucesso, inválido, timeout e 429 quota/rate/missing. Verificam preservação do chamado,
+ausência de sugestão nas falhas e consulta de concordância. Migração 0006 testada
+em PostgreSQL descartável com histórico simulado/OpenAI; downgrade bloqueia dados
+Groq. Rede externa bloqueada e chave fictícia. [Limites](23-adaptador-groq.md) e
+[resultados executados](andamento.md); não equivale a validação com modelo real.
+
+Ensaio adicional de US08 em 09/11/2026: [24 fixtures com mocks](22-ensaio-us08-mocks.md), usando SDK/adaptador reais, transporte HTTP em memória, banco descartável e consulta de concordância existente. AV01–AV08 × 3 com falhas/exclusões/divergências/correção roteirizadas; não é execução da avaliação de modelo real nem evidência de sua qualidade semântica. Piloto e lote real seguem pausados.
+
+Atualização US08 (09/11/2026): [adaptador OpenAI opcional](19-adaptador-openai.md) com SDK real/transporte falso, rede externa bloqueada nos testes do adaptador e credenciais fictícias. `tests/unit/test_openai_provider.py` cobre configuração/seleção, protocolo, saída e limites; `tests/integration/test_openai.py` cobre persistência/falha/revisão humana, consulta por modo e migração preservando dados. CI continua `AI_MODE=simulated`; chamadas reais e 24 execuções ainda pendentes de modelo/custo/autorização. Evidências atuais em andamento; as contagens anteriores abaixo são históricas.
+
 Atualização de publicação: [CI GitHub 42507831040](https://github.com/elisilva75/triagem-chamados-agente-ia/actions/runs/42507831040) aprovada no commit c7c3331 com 177 testes (98 unit, 77 integração/API, 2 HTTP real), sem falha/erro/skip, relatórios JUnit conferidos. Ubuntu 26.04/Python 3.12.16/PostgreSQL 16.15, mesmos locks. Isso fecha a pendência remota de US07; Compose permanece não validado. O texto anterior abaixo registra a evidência local que precedeu esse run. Atualização somente documental usa skip ci, sem nova suíte funcional.
 
 **Estratégia do MVP aprovado, implementada até US07.** Pipeline local compartilhado com CI em scripts/check_quality.py: pip check, Ruff, 98 unitários, 77 integração/API e 2 HTTP real (177 passed, sem skips). Quatro testes novos verificam interrupção do pipeline, configuração obrigatória e rejeição de relatórios vazios/com skips; o restante reaproveita as suítes existentes, incluindo revisão humana/edição/invalidação. Duas execuções concorrentes do roundtrip de migração comprovaram bancos distintos registrados em JUnit. [Resultados e limites](andamento.md); [guia Windows](10-validacao-local.md). CI remota e Compose não executados. O aviso TestClient/HTTPX permanece visível. Não há percentual de cobertura de linhas medido; relatórios e rastreabilidade documentam os caminhos críticos.
@@ -54,6 +72,8 @@ Avaliar: categoria aceita por caso, prioridade compatível com política, ausent
 Critérios de saída do agente simulado: 100% das validações estruturais e de limites; rejeição de todas as fixtures inválidas; ferramentas obrigatórias consultadas. Avaliação real proposta: 3 repetições de cada caso (24 execuções), registrar modelo, parâmetros, versões, custo e contagem por critério; meta inicial ≥ 90% de adequação semântica e zero violação de ferramentas/catálogo. Uma violação de segurança bloqueia habilitação real mesmo com média alta. Se não atingir, registrar falhas, ajustar e reavaliar com orçamento autorizado; não esconder resultados desfavoráveis.
 
 ## Evidências por história
+
+O [relatório de concordância da triagem](18-avaliacao-triagem.md) e a [consulta SQL](../scripts/triage_review_agreement.sql) complementam as 24 execuções controladas previstas acima, contando uma revisão final por tentativa elegível. Concordância na amostra revisada não substitui a avaliação semântica nem representa execução das 24 avaliações reais; provedor, modelo e orçamento continuam pendentes.
 
 Manter no andamento: IDs de CA, arquivos alterados, comandos completos, ambiente, saída resumida, quantidade de testes e falhas/itens não executados. Não concluir história com critério obrigatório pendente. Cobertura numérica é apoio, não substitui teste de concorrência, falha e fluxo HTTP real. Metas de desempenho são medidas separadamente com ambiente registrado, sem flakiness obrigatória no CI.
 

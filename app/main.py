@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException
 
-from app.agent.simulated import SimulatedProvider
+from app.agent.factory import make_provider
 from app.api.routes import router
 from app.api.schemas import ErrorResponse
 from app.config import Settings
@@ -43,14 +43,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         title="Triagem de Chamados — uso local sem autenticação",
         version="0.5.0",
         description=(
-            "Cadastro, triagem simulada, revisão humana, resolução e reabertura. Uso local."
+            "Cadastro, triagem com simulação padrão, revisão humana e resolução. Uso local."
         ),
         lifespan=lifespan,
         responses={code: {"model": ErrorResponse} for code in (404, 409, 422, 500, 502, 503, 504)},
     )
     app.state.sessions = make_sessions(engine)
     app.state.engine = engine
-    app.state.provider = SimulatedProvider()
+    app.state.provider = make_provider(settings)
 
     @app.exception_handler(TicketError)
     async def ticket_error(request, exc):

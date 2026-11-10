@@ -1,5 +1,86 @@
 # Decisões aprovadas e limites desta entrega
 
+## US08: execução exclusiva AV08 revisado — 10/11/2026
+
+Mensagem atual autorizou somente AV08 uma vez com instruções atuais, até três
+envios, 16 KiB/corpo e 2.000 tokens de saída/pedido, sem retry, parada no primeiro
+erro/429. Perfil exclusivo com reserva global 6.000; confirmação de plano Livre
+e validade até 16/11/2026 fornecida no mesmo dia, sem consulta adicional ao painel.
+Mocks antes da chave: 27 passed. Executado: três HTTP 200, duvida/baixa, lista
+vazia, 3.227 tokens informados. Revisão humana pendente, ressalva “sem impacto”;
+cobrança posterior não confirmada. Autorização consumida, sem repetição; AV08
+original preservado. Lote de 24 permanece desabilitado e simulador ativo.
+[Evidências](32-av08-instrucoes-revisadas-groq.md).
+
+## US08: revalidação exclusiva de três casos — 10/11/2026
+
+Mensagem atual autorizou especificamente AV01-R1, AV05-R1 e AV06-R1 uma vez
+cada após política v2: até nove tentativas, três/caso, 16 KiB/corpo, até 2.000
+tokens de saída/pedido e reserva global 18.000, sequência e parada no primeiro
+erro/429 sem retry. Confirmação do mesmo dia: organização Livre, chave ativa
+até 16/11/2026. Mocks antes da chave: 47 passed. Executados três sucessos,
+nove HTTP 200 sem retry; autorização consumida, nenhuma retomada autorizada.
+Cobrança posterior não confirmada; novas revisões humanas pendentes. Dez JSON
+originais preservados, demo intacto, simulador local ativo e lote de 24
+desabilitado. [Resultados e divergências](31-revalidacao-av01-av05-av06-groq.md).
+
+## US08: exceção autorizada exclusiva dos oito R1 — 10/11/2026
+
+Eliana autorizou AV01-R1…AV08-R1 uma vez cada na Groq/openai/gpt-oss-20b,
+aceitando limite de 16 KiB por corpo e medição posterior da entrada, até 24 envios,
+três por caso e reserva global de 48.000 tokens de saída (até 2.000/pedido).
+Confirmou plano Livre e chave ativa com expiração 16/11/2026. Mocks obrigatórios
+executados antes da chave: 43 passed. Rodada executada uma única vez e interrompida
+na resposta final do AV08 por HTTP 429; 24 envios, sem retry, sete sucessos, uma
+falha. Autorização utilizada, não autoriza repetição/retomada ou R2/R3. Lote real
+de 24 permanece desabilitado. Cobrança posterior desta rodada ainda não confirmada.
+[Evidências e pendências de revisão humana](28-rodada-real-r1-groq.md).
+
+## US08: confirmação do plano e piloto Groq executado — 09/11/2026
+
+Eliana confirmou Projeto padrão na organização no plano Livre (US$ 0), modelo
+`openai/gpt-oss-20b` permitido, e autorizou executar o piloto previamente condicionado.
+Uma triagem fictícia concluída com três requisições HTTP 200, sem retry. Autorização
+utilizada; nenhuma nova tentativa autorizada. Sugestão defeito/alta; revisão humana
+pendente, custo posterior no painel não confirmado. Banco descartável removido,
+demo preservado, simulador local ativo. Lote real de 24 pausado. [Evidência](andamento.md).
+
+## US08: piloto Groq condicionado à ausência de cobrança — 09/11/2026
+
+Eliana autorizou uma única triagem fictícia em banco descartável com
+`openai/gpt-oss-20b`, até três requisições totais, sem retry automático/manual,
+interrupção ao primeiro erro e Groq ativa somente no processo isolado. Antes de
+qualquer requisição, confirmar ausência de cobrança na conta/projeto da chave;
+sem confirmação ou com custo previsto, parar. Nesta conferência não há acesso
+ao painel privado: piloto não iniciado, zero requisições e autorização ainda não
+utilizada. Chave/demo preservados, simulador ativo, lote de 24 pausado. Evidência
+e informação faltante em [andamento](andamento.md).
+
+## US08: candidato ao piloto Groq — 09/11/2026
+
+Eliana escolheu `openai/gpt-oss-20b` como candidato, com revisão dos payloads apenas
+em mocks. Isso não autoriza uso da chave nem chamada real. Simulador segue ativo;
+piloto e lote real pausados. Modelo continua configurável, sem default no código.
+
+## US08: Groq opcional somente offline — 09/11/2026
+
+Eliana autorizou a menor extensão do adaptador para Groq, com testes HTTP mockados,
+credencial fictícia e banco isolado. Simulador segue padrão; a existência de chave
+local não autoriza seu uso. Piloto e lote real continuam pausados, sem commit/push.
+Implementação, compatibilidade e pendências em [23-adaptador-groq.md](23-adaptador-groq.md).
+
+## US08: segunda tentativa isolada autorizada e executada — 09/11/2026
+
+Após conferir a exportação sem consumo visível, Eliana autorizou expressamente uma única nova tentativa do piloto com gpt-6-luna, chamado fictício em banco isolado, até três requisições no total, TLS com certificado/hostname verificados e orçamento de referência USD 0,01. Interromper ao primeiro erro sem retry; manter AI_MODE=simulated no `.env` ao encerrar. Essa autorização cobre somente a segunda tentativa, já executada e interrompida após uma requisição/HTTP 429, sem usage. Custo desconhecido. Não autoriza terceira tentativa nem lote de 24. Evidência em andamento e documento 21; chave e bancos preservados localmente, sem publicação/deploy.
+
+## US08: um único piloto real autorizado — 09/11/2026
+
+Eliana confirmou expressamente autorização para **um chamado fictício, uma tentativa de triagem, até três requisições no gpt-6-luna, com orçamento de referência de USD 0,01**. Não é teto garantido de cobrança, por ausência de limite de tokens de entrada verificado. Não autoriza retries, as 24 execuções, push ou deploy. Chave somente local, fora da conversa/Git; simulador continua padrão. Após piloto, conferir ferramentas, validação e consumo, solicitar/registrar decisão humana sem atribuir ao assistente identidade de pessoa revisora, e recalcular projeção antes de qualquer lote. Esta autorização substitui a proibição anterior de chamadas reais exclusivamente para esse piloto. Estado e bloqueios em andamento.
+
+## US08: adaptador OpenAI autorizado para testes locais — 09/11/2026
+
+Eliana escolheu OpenAI como primeiro provedor e autorizou adaptador Responses API, configuração explícita, migração preservando dados e testes com transporte falso/rede externa bloqueada. Esta autorização substitui a restrição anterior de implementar somente o simulador, mantendo `simulated` como padrão e CI simulada. Não autoriza chamadas reais, custos, push ou deploy. Modelo definitivo, estimativa de custo e autorização para as 24 execuções reais permanecem pendentes. Consulta de concordância, seus testes, histórico documental e banco demo devem ser preservados. [Implementação e ativação futura](19-adaptador-openai.md).
+
 ## Publicação autorizada e executada — 08/11/2026
 
 Eliana autorizou publicar código em repositório público elisilva75/triagem-chamados-agente-ia, main, licença MIT 2026 Eliana Gomes da Silva, com noreply exato fornecido por ela e reescrita somente dos e-mails do histórico de publicação. Preservar nomes/mensagens/ordem/conteúdo; backups e outras branches ficam locais; sem force push. Publicação e CI realizadas conforme [andamento](andamento.md). US08 adiada, AI_MODE=simulated, aplicação apenas loopback/sem autenticação; publicar o código não autoriza deploy da aplicação nem chamadas pagas. Compose permanece não validado até execução própria.
