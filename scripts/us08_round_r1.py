@@ -2,7 +2,6 @@
 
 import argparse
 import json
-from datetime import date
 from pathlib import Path
 
 import httpx
@@ -13,6 +12,7 @@ from app.agent.openai_provider import verified_tls_context
 from app.agent.tools import POLICY_VERSION
 from scripts import us08_groq_pilot as pilot
 from scripts.us08_batch import CASES, BatchBudget, GuardedTransport, write_json
+from scripts.us08_confirmation import validate_confirmation
 
 ROUND_IDS = tuple(case_id for case_id in CASES if case_id.endswith("-R1"))
 REAL_DIR = Path("reports/us08/groq-r1-authorized-2026-11-10")
@@ -40,16 +40,7 @@ def run_round(
     real = mock_factory is None
     if real:
         # Conferência humana do painel, sem usar a chave para testar autenticação.
-        if (
-            not confirmation
-            or confirmation.get("plan") != "Livre"
-            or not confirmation.get("active")
-        ):
-            raise ValueError("Exige confirmação atual de plano Livre e chave ativa.")
-        confirmed = date.fromisoformat(confirmation["checked_on"])
-        expires = date.fromisoformat(confirmation["expires_on"])
-        if confirmed != date.today() or confirmed >= expires:
-            raise ValueError("Conferência não atual ou chave fora da validade nominal.")
+        validate_confirmation(confirmation)
         if revalidation and confirmation.get("scope") != "AV01_AV05_AV06_once_after_policy_v2":
             raise ValueError("Confirmação não corresponde à revalidação de três casos.")
         if profile == "av08-revised" and confirmation.get("scope") != "AV08_once_revised":
@@ -127,8 +118,15 @@ def run_round(
                 attempt_id=evidence.get("attempt_id")
                 or evidence.get("persisted_state", {}).get("attempt_id"),
             )
+            if "operational_status" in evidence:
+                case["operational_status"] = evidence["operational_status"]
+            if "cleanup_error" in evidence:
+                case["cleanup_error"] = evidence["cleanup_error"]
             if result:
-                budget.stop(budget.state["stop_reason"] or "execution_error")
+                reason = (
+                    "database_cleanup_error" if evidence.get("cleanup_error") else "execution_error"
+                )
+                budget.stop(budget.state["stop_reason"] or reason)
         except (Exception, KeyboardInterrupt) as exc:
             case["status"] = "interrompido"
             case.setdefault("execution_error", pilot.error_metadata(exc))
@@ -178,6 +176,8 @@ def main():
             ensure_ascii=True,
         )
     )
+    if manifest["budget"]["stop_reason"] == "database_cleanup_error":
+        return 2
     return int(manifest["budget"]["stopped"])
 
 

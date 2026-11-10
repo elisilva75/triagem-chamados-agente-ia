@@ -63,6 +63,12 @@ Cada ensaio gera nomes exclusivos de arquivos e bancos. O JUnit
 Não usar `--execute-approved` para reproduzir mocks: essa flag é de execução real,
 e a autorização anterior continua consumida e bloqueada pelo ledger original.
 
+Atualização da revisão do PR #1: o piloto avulso exige também `--confirmation`
+atual com escopo `groq_single_pilot_once`, validada antes da leitura da chave ou
+criação de recursos. Falha no DROP preserva sugestão/evidências e retorna erro
+operacional 2, interrompendo a rodada. Detalhes e regressões offline em
+[correções do PR #1](34-correcoes-revisao-pr1.md). Isso não autoriza novas chamadas.
+
 ## Limite histórico
 
 O ledger real `reports/us08/groq-authorized-single-pilot.json` não foi alterado.

@@ -176,8 +176,15 @@ def execute_batch(output_dir, *, test_admin_url=None, mock_factory=None):
                 attempt_id=evidence.get("attempt_id")
                 or evidence.get("persisted_state", {}).get("attempt_id"),
             )
+            if "operational_status" in evidence:
+                case["operational_status"] = evidence["operational_status"]
+            if "cleanup_error" in evidence:
+                case["cleanup_error"] = evidence["cleanup_error"]
             if code:
-                budget.stop(budget.state["stop_reason"] or "execution_error")
+                reason = (
+                    "database_cleanup_error" if evidence.get("cleanup_error") else "execution_error"
+                )
+                budget.stop(budget.state["stop_reason"] or reason)
         except BaseException:
             case["status"] = "interrompido"
             budget.stop(budget.state["stop_reason"] or "evidence_or_execution_error")

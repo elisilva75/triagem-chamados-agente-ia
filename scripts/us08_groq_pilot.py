@@ -22,6 +22,7 @@ from app.agent.openai_provider import verified_tls_context
 from app.application.tickets import register_ticket
 from app.application.triage import triage_ticket
 from app.infrastructure.database import make_sessions
+from scripts.us08_confirmation import SINGLE_PILOT_SCOPE, validate_confirmation
 
 MODEL = "openai/gpt-oss-20b"
 REPORT = Path("reports/us08/groq-authorized-single-pilot.json")
@@ -139,10 +140,23 @@ class PilotTransport(httpx.AsyncBaseTransport):
 
 
 def execute(
-    *, report_path=None, mock_factory=None, test_admin_url=None, ticket_data=None, approved_key=None
+    *,
+    report_path=None,
+    mock_factory=None,
+    test_admin_url=None,
+    ticket_data=None,
+    approved_key=None,
+    confirmation=None,
 ):
     report_path = report_path or REPORT
     mocked = mock_factory is not None and approved_key is None
+    # Chaves fornecidas pela rodada já passaram pelo preflight daquele escopo.
+    # O piloto avulso valida aqui antes de arquivo, chave, banco ou transporte.
+    checked_confirmation = None
+    if not mocked and approved_key is None:
+        checked_confirmation = validate_confirmation(
+            confirmation, expected_scope=SINGLE_PILOT_SCOPE
+        )
     if mocked and test_admin_url is None:
         raise ValueError("Ensaio exige banco administrativo de teste explícito.")
     if test_admin_url is not None:
@@ -167,6 +181,8 @@ def execute(
         "cost_status": "nao_confirmado",
         "requests": [],
         "result": "not_started",
+        "operational_status": "ok",
+        "confirmation": checked_confirmation,
         "human_review": "nao_realizada",
         "evidence_kind": "ensaio_automatizado_com_mocks" if mocked else "piloto_real",
         "suggestion": None,
@@ -260,6 +276,7 @@ def execute(
     except (Exception, KeyboardInterrupt) as exc:
         report.setdefault("execution_error", error_metadata(exc))
         report["result"] = "interrompido"
+        report["operational_status"] = "execution_error"
     finally:
         if engine is not None:
             try:
@@ -289,8 +306,10 @@ def execute(
                 with admin.connect() as connection:
                     connection.exec_driver_sql(f'DROP DATABASE "{name}" WITH (FORCE)')
                 report["database_discarded"] = True
-            except Exception:
+            except Exception as exc:
                 report["database_discarded"] = False
+                report["cleanup_error"] = error_metadata(exc)
+                report["operational_status"] = "cleanup_error"
         if admin is not None:
             admin.dispose()
         os.environ["AI_MODE"] = "simulated"
@@ -298,22 +317,32 @@ def execute(
         save()
     if approved_key is None:
         print(json.dumps(report, ensure_ascii=True))
+    if report["operational_status"] == "cleanup_error":
+        return 2
     return 0 if report["result"] == "sucesso" else 1
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--execute-approved", action="store_true")
-    args = parser.parse_args()
+    parser.add_argument("--confirmation", type=Path)
+    args = parser.parse_args(argv)
     if not args.execute_approved:
         print(
             "Preparação: sem chave, banco ou rede. Execução exige autorização e plano confirmado."
         )
         return 0
+    if args.confirmation is None:
+        parser.error("--execute-approved exige --confirmation atual para o piloto avulso.")
+    try:
+        confirmation = json.loads(args.confirmation.read_text(encoding="utf-8"))
+        confirmation = validate_confirmation(confirmation, expected_scope=SINGLE_PILOT_SCOPE)
+    except (OSError, ValueError):
+        parser.error("Confirmação ausente, inválida, vencida ou fora do escopo do piloto avulso.")
     if REPORT.exists():
         print("Autorização já registrada; não repetir.")
         return 1
-    return execute()
+    return execute(confirmation=confirmation)
 
 
 if __name__ == "__main__":

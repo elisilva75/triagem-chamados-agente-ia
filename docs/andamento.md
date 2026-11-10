@@ -1,5 +1,89 @@
 # Andamento e continuidade
 
+## 10/11/2026 — Correções dos dois achados do PR #1, verificadas offline
+
+Na branch feat/us08-avaliacao, corrigidos os dois achados autorizados por Eliana.
+Detalhes e rastreabilidade em [correções da revisão](34-correcoes-revisao-pr1.md).
+
+1. Se DROP DATABASE falha após triagem válida, resultado/sugestão/evidências
+   continuam preservados. Falha de limpeza tem metadados sanitizados separados,
+   operational_status=cleanup_error e retorno operacional 2. Rodada/batch registram
+   essa falha e param antes do próximo caso, sem repetir DROP, triagem ou HTTP.
+2. Piloto avulso --execute-approved exige --confirmation: plano Livre, active=true
+   estrito, checked_on do dia, expires_on posterior ao dia e scope=groq_single_pilot_once.
+   Validação compartilhada com a rodada, executada antes de relatório/chave/banco
+   ou transporte. Confirmação inválida não produz esses efeitos; relatório guarda
+   apenas os campos normalizados. Autorizações da rodada mantêm seu preflight
+   antes de ler approved_key; não ampliam o escopo do piloto avulso.
+
+Regressões novas: **14 passed**, 28,14 s. Dois testes injetam falha no DROP em
+PostgreSQL exclusivo (rodada/batch), preservam a sugestão, verificam retorno 2
+e zero envios dos casos seguintes ao transporte. A injeção é retirada antes da
+limpeza específica do banco UUID criado por cada teste. Outro teste executa o
+CLI válido com confirmação/chave fictícias e HTTP mockado. Onze unitários
+cobrem ausência/arquivo ausente, plano, atividade/tipo, conferência/validade
+vencida, datas inválidas e escopo incorreto, antes de ler chave/criar recursos.
+
+**Pipeline final único completo: exit 0, 348 passed**, sem falhas/erros/skips,
+após estabilizar código/configuração. `python scripts/check_quality.py`, via
+wrapper local que remove GROQ_API_KEY/OPENAI_API_KEY do ambiente do processo,
+define AI_MODE=simulated/APP_ENV=test e DATABASE_URL/TEST_DATABASE_URL no
+PostgreSQL administrativo fictício 127.0.0.1:55432/portfolio_test.
+
+| Fase desta mesma execução | Resultado | Tempo dos testes |
+| --- | --- | ---: |
+| pip check | aprovado | — |
+| Ruff check / format --check | aprovados | — |
+| Unitários | 230 passed | 16,80 s |
+| PostgreSQL/API | 116 passed | 908,52 s |
+| HTTP/TCP loopback | 2 passed | 39,48 s |
+
+Log completo: .local/us08-pr-full-pipeline.log; JUnit em reports/unit.xml,
+reports/postgres-api.xml e reports/http-real.xml; regressões em
+reports/us08-pr-regressions.xml. Todos ignorados pelo Git. O pipeline rejeita
+suítes vazias/skips. Aviso conhecido HTTPX/TestClient mantido. Formatação
+inicial corrigida antes do pipeline; nenhuma falha de teste nesta execução.
+`git diff --check` final aprovado.
+
+Sem novas dependências, sem acesso/migração ao demo, sem chamadas reais à Groq.
+.env local continua AI_MODE=simulated, lote real de 24 desabilitado. Docker Compose
+permanece sem validação. Eliana autorizou commit/push desta correção se aprovada;
+resultado remoto e novos checks serão registrados após o envio. PR #1 deve
+continuar draft, sem merge/deploy. O registro da publicação anterior abaixo
+é histórico, não resultado de CI desta correção.
+
+## 10/11/2026 — US08 publicada em branch; PR draft e CI aprovados
+
+Publicação retomada por autorização explícita de Eliana. Conferidos antes do envio:
+branch local feat/us08-avaliacao, HEAD **db49812e584a49f1df5f30c6a0155a8af72a7bff**,
+árvore limpa e origin=https://github.com/elisilva75/triagem-chamados-agente-ia.git.
+Conta autenticada elisilva75 e main remota iguais à base local fb0b93a confirmadas.
+Evidência local validada reutilizada: pipeline completo de 334 testes registrado abaixo;
+não houve nova alteração de código/configuração nem repetição da suíte nesta publicação.
+
+Executado push explícito somente da ref da branch, sem force, tags ou submódulos:
+`git push --no-follow-tags --recurse-submodules=no origin refs/heads/feat/us08-avaliacao:refs/heads/feat/us08-avaliacao`.
+Saída: new branch, exit 0. `git ls-remote --heads origin refs/heads/feat/us08-avaliacao`
+confirmou exatamente db49812e584a49f1df5f30c6a0155a8af72a7bff no remoto.
+
+Criado [PR #1 em rascunho](https://github.com/elisilva75/triagem-chamados-agente-ia/pull/1),
+head feat/us08-avaliacao, base main, draft=true e head SHA esperado confirmados.
+Checks acompanhados até conclusão; ambas as execuções retornaram completed/success:
+
+| Evento | Check | Resultado | Execução |
+| --- | --- | --- | --- |
+| push | test | success | [42836792700](https://github.com/elisilva75/triagem-chamados-agente-ia/actions/runs/42836792700) |
+| pull_request | test | success | [42836849536](https://github.com/elisilva75/triagem-chamados-agente-ia/actions/runs/42836849536) |
+
+Evidência final por leitura da API GitHub em .local/us08-final-ci.json (ignorado).
+Sem falha no push ou na criação do PR. Nenhum merge, deploy, chamada a provedor de IA
+ou lote real de 24 avaliações foi executado; Groq experimental e simulador padrão mantidos.
+Nenhum acesso/migração ao demo nesta operação. Docker Compose permanece sem validação.
+
+Este registro documental posterior permanece **local, sem novo commit/push**, para manter
+a branch publicada e o PR exatamente no commit autorizado db49812. O registro anterior
+de verificação pré-commit abaixo é histórico; publicação e CI agora estão confirmadas.
+
 ## 10/11/2026 — US08: retomada autorizada da publicação da branch
 
 Eliana autorizou retomar commit/push exclusivamente de feat/us08-avaliacao e
