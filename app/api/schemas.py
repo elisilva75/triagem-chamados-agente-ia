@@ -150,9 +150,9 @@ class AttemptRead(BaseModel):
     attempt_number: int
     content_revision: int
     status: Literal["em_analise", "sucesso", "falha"]
-    mode: Literal["simulated"]
-    provider: None = None
-    model: None = None
+    mode: Literal["simulated", "openai", "groq"]
+    provider: Literal["openai", "groq"] | None = None
+    model: str | None = None
     catalog_version: str
     policy_version: str
     started_at: datetime

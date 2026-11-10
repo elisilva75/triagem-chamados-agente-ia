@@ -169,7 +169,8 @@ def test_us06_migration_preserves_attempts_and_classification_snapshots(database
     from app.infrastructure.database import make_sessions
     from tests.conftest import migrate
 
-    migrate(database_url, "upgrade", "0003")
+    # O código atual exige head; preparar dados e só então retornar ao esquema histórico.
+    migrate(database_url, "upgrade", "head")
     engine = create_engine(database_url)
     sessions = make_sessions(engine)
     try:
@@ -180,12 +181,15 @@ def test_us06_migration_preserves_attempts_and_classification_snapshots(database
         triage_ticket(sessions, ticket_id, 1, SimulatedProvider())
         with sessions() as session:
             edit_ticket(session, ticket_id, 3, {"title": "Título corrigido anterior"})
+        migrate(database_url, "downgrade", "0003")
 
         def snapshot():
             with engine.connect() as connection:
                 return {
                     table: connection.execute(
-                        text(f"SELECT row_to_json(t) FROM {table} t ORDER BY id")
+                        text(
+                            f"SELECT to_jsonb(t) - 'provider' - 'model' FROM {table} t ORDER BY id"
+                        )
                     )
                     .scalars()
                     .all()

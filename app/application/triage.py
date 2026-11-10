@@ -22,7 +22,7 @@ def utc_now():
 class TriageFailure(TicketError):
     def __init__(self, code, ticket_id, attempt_id):
         status = 504 if code == "ai_timeout" else 503 if code == "ai_unavailable" else 502
-        super().__init__(status, code, "A triagem simulada falhou; consulte o chamado.")
+        super().__init__(status, code, "A triagem falhou; consulte o chamado.")
         self.details = [
             {"ticket_id": str(ticket_id), "attempt_id": str(attempt_id), "triage_status": "falha"}
         ]
@@ -76,7 +76,9 @@ def triage_ticket(sessions, ticket_id, expected_version, provider: AIProvider, *
             attempt_number=number,
             content_revision=ticket.content_revision,
             status="em_analise",
-            mode="simulated",
+            mode=getattr(provider, "mode", "simulated"),
+            provider=getattr(provider, "provider", None),
+            model=getattr(provider, "model", None),
             catalog_version=CATALOG_VERSION,
             policy_version=POLICY_VERSION,
             started_at=now,
@@ -118,7 +120,7 @@ def triage_ticket(sessions, ticket_id, expected_version, provider: AIProvider, *
                 {
                     **result.output.model_dump(mode="json"),
                     "attempt_id": str(attempt_id),
-                    "mode": "simulated",
+                    "mode": attempt.mode,
                 }
             ).model_dump(mode="json")
             ticket.suggestion = attempt.suggestion

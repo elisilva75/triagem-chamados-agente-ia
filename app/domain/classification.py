@@ -16,7 +16,7 @@ class Classification(BaseModel):
 
 class Suggestion(Classification):
     attempt_id: UUID
-    mode: Literal["simulated"]
+    mode: Literal["simulated", "openai", "groq"]
     rationale: Annotated[str, StringConstraints(strict=True, min_length=10, max_length=500)]
     missing_fields: Annotated[
         list[Literal["ambiente", "passos_reproducao", "impacto", "inicio_ocorrencia"]],

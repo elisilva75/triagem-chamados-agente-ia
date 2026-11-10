@@ -1,5 +1,9 @@
 # Arquitetura e dados
 
+## US08 — adaptador opcional OpenAI (09/11/2026)
+
+Atualização do estado descrito historicamente abaixo: `AIProvider` agora também tem adaptador Responses API selecionado explicitamente por Settings/factory; `simulated` continua padrão. Migração 0005 acrescenta metadados de provedor/modelo e aceita modo openai preservando dados simulados. Ferramentas, validação e revisão humana são compartilhadas; testes usam SDK real com transporte falso e rede externa bloqueada. Nenhuma chamada de modelo real realizada. [Contrato, limites e fontes oficiais](19-adaptador-openai.md); [evidências](andamento.md). Demo permanece sem upgrade nesta entrega.
+
 **Arquitetura do MVP — implementação incremental até US06.** Fundação, cadastro, consulta, edição, agente simulado, recuperação/retry, revisão humana e resolução/reabertura implementados. Os complementos por história ao final atualizam o desenho inicial abaixo.
 
 **Estado atual:** migrações 0001–0004 criam chamados, eventos/snapshots, tentativas e revisões humanas. ADR01–ADR10 foram implementadas incrementalmente; os complementos abaixo preservam a motivação de cada etapa. [Decisões aprovadas](08-decisoes-aprovadas.md), [ambiente/versões](09-ambiente-e-versoes.md) e [andamento](andamento.md) registram aceite e evidências. Somente provedor simulado existe; US08 está adiada.
@@ -98,3 +102,5 @@ Revisão é append-only pelas rotas: não há update/delete; uma correção inse
 Revisão, resolução e reabertura usam SELECT FOR UPDATE para serializar comparação de version, verificação de estado, gravação e incremento. Resolve/reopen gravam TicketEvent na mesma transação, com revisão do conteúdo mantida; erro de review/projeção/evento reverte toda a operação. Correções em revisada são novas decisões explícitas; repetições de resolve/reopen retornam 409. Edição/no-op continuam conforme US03, agora verificados com classificação produzida pelas rotas reais de US06.
 
 Sem dependências novas/reconfiguradas; mesmos locks/fontes oficiais anteriores. Migração aditiva aplicada ao demo apenas após testes, com comparação integral de dados; downgrade ensaiado só em bancos descartáveis. Não há autenticação, IA real, publicação ou deploy. Infraestrutura Compose/CI continua pendente.
+
+US08: migração 0006 amplia os CHECKs para Groq, preservando dados. O adaptador reutiliza Responses/SDK com etapas separadas de ferramentas e JSON Schema; [detalhes e limites](23-adaptador-groq.md). Simulador padrão; demo sem upgrade.

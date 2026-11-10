@@ -78,7 +78,13 @@ class TriageAttempt(Base):
             postgresql_where=text("status = 'em_analise'"),
         ),
         CheckConstraint("status IN ('em_analise','sucesso','falha')", name="ck_attempt_status"),
-        CheckConstraint("mode = 'simulated'", name="ck_attempt_mode"),
+        CheckConstraint("mode IN ('simulated','openai','groq')", name="ck_attempt_mode"),
+        CheckConstraint(
+            "(mode = 'simulated' AND provider IS NULL AND model IS NULL) OR "
+            "(mode IN ('openai','groq') AND provider = mode AND provider IS NOT NULL "
+            "AND model IS NOT NULL AND char_length(trim(model)) BETWEEN 1 AND 200)",
+            name="ck_attempt_provider",
+        ),
         CheckConstraint("attempt_number >= 1 AND content_revision >= 1", name="ck_attempt_numbers"),
         CheckConstraint(
             "model_calls BETWEEN 0 AND 3 AND tool_calls BETWEEN 0 AND 4", name="ck_attempt_calls"
@@ -99,6 +105,8 @@ class TriageAttempt(Base):
     content_revision: Mapped[int]
     status: Mapped[str] = mapped_column(String(16))
     mode: Mapped[str] = mapped_column(String(16), default="simulated")
+    provider: Mapped[str | None] = mapped_column(String(16))
+    model: Mapped[str | None] = mapped_column(String(200))
     catalog_version: Mapped[str] = mapped_column(String(16))
     policy_version: Mapped[str] = mapped_column(String(16))
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
